@@ -8,7 +8,7 @@ cloudplotAddin()
 }
 \description{
 Interactively make a \code{lattice} cloud plot. The resulting
-code will be emitted as a call to the \code{\link{lattice::cloud}}
+code will be emitted as a call to \code{lattice::cloud}.
 function.
 }
 \details{

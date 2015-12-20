@@ -1,7 +1,7 @@
 #' Make a \code{lattice} cloud plot.
 #'
 #' Interactively make a \code{lattice} cloud plot. The resulting
-#' code will be emitted as a call to the \code{\link{lattice::cloud}}
+#' code will be emitted as a call to \code{lattice::cloud}.
 #' function.
 #'
 #' The intended way to use this is as follows:
@@ -27,19 +27,21 @@ cloudplotAddin <- function() {
   ui <- gadgetPage(
     titlebar("Make a Cloud Plot"),
     contentPanel(
-      stableColumnLayout(
+      sidebarPanel(
         textInput("data", "Data", value = defaultData),
-        helpTesxt("Choose your variables."),
+        helpText("Choose your variables."),
         textInput("zVar", "z", value = "Petal.Length"),
         textInput("xVar", "x", value = "Sepal.Length"),
         textInput("yVar", "y", value = "Sepal.Width"),
         helpText("Use these sliders to rotate the plot."),
         sliderInput("zScreen","z",0,360,value=0,step=1),
         sliderInput("xScreen","x",0,360,value=90,step=1),
-        sliderInput("yScreen","y",0,360,value=0,step=1),
-        uiOutput("pending")
+        sliderInput("yScreen","y",0,360,value=0,step=1)
       ),
-      plotOutput("output")
+      mainPanel(
+        uiOutput("pending"),
+        plotOutput("output")
+        )
     )
   )
 
@@ -51,9 +53,6 @@ cloudplotAddin <- function() {
 
       # Collect inputs.
       dataString <- input$data
-      zVarString <- input$zVar
-      xVarString <- input$xVar
-      yVarString <- input$yVar
       
       # Check to see if there is data called 'data',
       # and access it if possible.
@@ -64,12 +63,6 @@ cloudplotAddin <- function() {
         return(errorMessage("data", paste("No dataset named '", dataString, "' available.")))
 
       data <- get(dataString, envir = .GlobalEnv)
-
-      call <- as.call(list(
-        as.name("lattice::cloud"),
-        data,
-        condition
-      ))
 
       eval(call, envir = .GlobalEnv)
     })
@@ -84,8 +77,9 @@ cloudplotAddin <- function() {
       data <- reactiveData()
       if (isErrorMessage(data))
         return(NULL)
-      form <- as.formula(paste(input$zVar,"~", input$xVar, "*", input$yVar))
-      lattice::cloud(form, data = as.name(input$data))
+      form <- as.name(paste(input$zVar,"~", input$xVar, "*", input$yVar))
+      lattice::cloud(Petal.Length ~ Sepal.Length * Sepal.Width, data = iris,
+                     screen = list(x=-input$xScreen,y=input$yScreen,z=input$zScreen))
     })
 
     # Listen for 'done'.
@@ -102,7 +96,7 @@ cloudplotAddin <- function() {
   }
 
   # Use a modal dialog as a viewr.
-  viewer <- dialogViewer("Subset", width = 1000, height = 800)
+  viewer <- browserViewer()
   runGadget(ui, server, viewer = viewer)
 
 }
