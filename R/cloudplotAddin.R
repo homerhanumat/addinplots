@@ -1,10 +1,9 @@
-#' Subset a Data Frame.
+#' Make a \code{lattice} cloud plot.
 #'
-#' Interactively subset a \code{data.frame}. The resulting
-#' code will be emitted as a call to the \code{\link{subset}}
+#' Interactively make a \code{lattice} cloud plot. The resulting
+#' code will be emitted as a call to the \code{\link{lattice::cloud}}
 #' function.
 #'
-#' This addin can be used to interactively subset a \code{data.frame}.
 #' The intended way to use this is as follows:
 #'
 #' 1. Highlight a symbol naming a \code{data.frame} in your R session,
@@ -15,7 +14,7 @@
 #' at the cursor position.
 #'
 #' @export
-subsetAddin <- function() {
+cloudplotAddin <- function() {
 
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
@@ -26,14 +25,21 @@ subsetAddin <- function() {
 
   # Generate UI for the gadget.
   ui <- gadgetPage(
-    titlebar("Subset a data.frame"),
+    titlebar("Make a Cloud Plot"),
     contentPanel(
       stableColumnLayout(
         textInput("data", "Data", value = defaultData),
-        textInput("subset", "Subset Expression")
+        helpTesxt("Choose your variables."),
+        textInput("zVar", "z", value = "Petal.Length"),
+        textInput("xVar", "x", value = "Sepal.Length"),
+        textInput("yVar", "y", value = "Sepal.Width"),
+        helpText("Use these sliders to rotate the plot."),
+        sliderInput("zScreen","z",0,360,value=0,step=1),
+        sliderInput("xScreen","x",0,360,value=90,step=1),
+        sliderInput("yScreen","y",0,360,value=0,step=1),
+        uiOutput("pending")
       ),
-      uiOutput("pending"),
-      dataTableOutput("output")
+      plotOutput("output")
     )
   )
 
@@ -45,8 +51,10 @@ subsetAddin <- function() {
 
       # Collect inputs.
       dataString <- input$data
-      subsetString <- input$subset
-
+      zVarString <- input$zVar
+      xVarString <- input$xVar
+      yVarString <- input$yVar
+      
       # Check to see if there is data called 'data',
       # and access it if possible.
       if (!nzchar(dataString))
@@ -57,16 +65,8 @@ subsetAddin <- function() {
 
       data <- get(dataString, envir = .GlobalEnv)
 
-      if (!nzchar(subsetString))
-        return(data)
-
-      # Try evaluating the subset expression within the data.
-      condition <- try(parse(text = subsetString)[[1]], silent = TRUE)
-      if (inherits(condition, "try-error"))
-        return(errorMessage("expression", paste("Failed to parse expression '", subsetString, "'.")))
-
       call <- as.call(list(
-        as.name("subset.data.frame"),
+        as.name("lattice::cloud"),
         data,
         condition
       ))
@@ -80,21 +80,22 @@ subsetAddin <- function() {
         h4(style = "color: #AA7732;", data$message)
     })
 
-    output$output <- renderDataTable({
+    output$output <- renderPlot({
       data <- reactiveData()
       if (isErrorMessage(data))
         return(NULL)
-      data
+      form <- as.formula(paste(input$zVar,"~", input$xVar, "*", input$yVar))
+      lattice::cloud(form, data = as.name(input$data))
     })
 
     # Listen for 'done'.
     observeEvent(input$done, {
 
       # Emit a subset call if a dataset has been specified.
-      if (nzchar(input$data) && nzchar(input$subset)) {
-        code <- paste("subset(", input$data, ", ", input$subset, ")", sep = "")
-        rstudioapi::insertText(text = code)
-      }
+      # if (nzchar(input$data) && nzchar(input$subset)) {
+      #   code <- paste("subset(", input$data, ", ", input$subset, ")", sep = "")
+      #   rstudioapi::insertText(text = code)
+      # }
 
       invisible(stopApp())
     })

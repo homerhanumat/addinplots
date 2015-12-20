@@ -1,16 +1,19 @@
-Package: addinexamples
-Title: RStudio Addins
+Package: addinplots
+Title: Addins for Plotting
 Version: 0.1.0
-Authors@R: person("Kevin", "Ushey", email = "kevin@rstudio.com", role = c("aut", "cre"))
-Description: Provides an example set of RStudio addins -- R functions that can be
-    bound to keyboard shortcuts, and called through different UI gestures.
+Authors@R: person("Homer", "White", email = "homerhanumat@gmail.com", role = c("aut", "cre"))
+Description: For use by my elementary statistics students. Provides a GUI for
+    plotting functions (cloud plots, ggplot2, etc., for which we don't teach the
+    code. Code output goes to the console or source document.
 Depends:
     R (>= 3.0.0)
 Imports:
     shiny,
     shinygadgets,
     rstudioapi,
-    formatR
-License: MIT + file LICENSE
+    formatR,
+    lattice,
+    ggplot2
+License: GPL (>=3)
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 5.0.0

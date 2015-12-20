@@ -1,19 +1,4 @@
-Name: Insert %in%
-Description: Inserts `%in%` at the cursor position.
-Binding: insertInAddin
-Interactive: false
-
-Name: Find and Replace
-Description: Find and replace words in a document.
-Binding: findAndReplaceAddin
-Interactive: true
-
-Name: Reformat R Code
-Description: Reformat R code using 'formatR::tidy_source()'.
-Binding: reformatAddin
-Interactive: true
-
-Name: Subset a Data Frame
-Description: Interactively subset a data frame.
-Binding: subsetAddin
+Name: Make a Cloud Plot
+Description: Interactively make a cloud plot..
+Binding: cloudplotAddin
 Interactive: true
