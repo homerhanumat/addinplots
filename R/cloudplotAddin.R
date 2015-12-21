@@ -4,7 +4,7 @@
 #' code will be emitted as a call to \code{lattice::cloud}.
 #' function.
 #'
-#' The intended way to use this is as follows:
+#' Here's how you use it:
 #'
 #' 1. Highlight a symbol naming a \code{data.frame} in your R session,
 #'    e.g. \code{mtcars},
@@ -15,6 +15,15 @@
 #'
 #' @export
 cloudplotAddin <- function() {
+  
+  # utility
+  find_numeric_vars <- function(data) {
+    isNum <- function(name, data) {
+      is.numeric(get(name, envir = as.environment(data)))
+    }
+    numNames <- sapply(names(data), isNum, data = data)
+    names(data)[numNames]
+  }
 
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
@@ -30,9 +39,9 @@ cloudplotAddin <- function() {
       sidebarPanel(
         textInput("data", "Data", value = defaultData),
         helpText("Choose your variables."),
-        textInput("zVar", "z", value = "Petal.Length"),
-        textInput("xVar", "x", value = "Sepal.Length"),
-        textInput("yVar", "y", value = "Sepal.Width"),
+        uiOutput("zVar"),
+        uiOutput("xVar"),
+        uiOutput("yVar"),
         helpText("Use these sliders to rotate the plot."),
         sliderInput("zScreen","z",0,360,value=0,step=1),
         sliderInput("xScreen","x",0,360,value=90,step=1),
@@ -63,8 +72,32 @@ cloudplotAddin <- function() {
         return(errorMessage("data", paste("No dataset named '", dataString, "' available.")))
 
       data <- get(dataString, envir = .GlobalEnv)
-
-      eval(call, envir = .GlobalEnv)
+      
+      # find the numerical variables in the data
+      
+      
+      data
+    })
+    
+    output$xVar <- renderUI({
+      data <- reactiveData()
+      selectInput(inputId = "xVar", label = "x",
+                  choices = c("", find_numeric_vars(data)),
+                  selected = "")
+    })
+    
+    output$yVar <- renderUI({
+      data <- reactiveData()
+      selectInput(inputId = "yVar", label = "x",
+                  choices = c("", find_numeric_vars(data)),
+                  selected = "")
+    })
+    
+    output$zVar <- renderUI({
+      data <- reactiveData()
+      selectInput(inputId = "zVar", label = "x",
+                  choices = c("", find_numeric_vars(data)),
+                  selected = "")
     })
 
     output$pending <- renderUI({
@@ -77,19 +110,39 @@ cloudplotAddin <- function() {
       data <- reactiveData()
       if (isErrorMessage(data))
         return(NULL)
-      form <- as.name(paste(input$zVar,"~", input$xVar, "*", input$yVar))
-      lattice::cloud(Petal.Length ~ Sepal.Length * Sepal.Width, data = iris,
-                     screen = list(x=-input$xScreen,y=input$yScreen,z=input$zScreen))
+      
+      xvar <- input$xVar
+      yvar <- input$yVar
+      zvar <- input$zVar
+      
+      check_var <- function(var) {
+        !is.null(var) && var != ""
+      }
+      
+      if (!(check_var(xvar) && check_var(yvar) && check_var(zvar))) {
+        return(NULL)
+      } else {
+        command <- paste0("lattice::cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
+                          input$data, ", screen = list(x = -",input$xScreen,", y = ",
+                          input$yScreen,", z = ",input$zScreen,"))")
+        eval(parse(text = command))
+      }
     })
 
     # Listen for 'done'.
     observeEvent(input$done, {
-
-      # Emit a subset call if a dataset has been specified.
-      # if (nzchar(input$data) && nzchar(input$subset)) {
-      #   code <- paste("subset(", input$data, ", ", input$subset, ")", sep = "")
-      #   rstudioapi::insertText(text = code)
-      # }
+      
+      xvar <- input$xVar
+      yvar <- input$yVar
+      zvar <- input$zVar
+      
+      # Emit a cloud call.
+      if (TRUE) {
+           code <- paste0("lattice::cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
+                          input$data,",\n\tscreen = list(x = -",input$xScreen,", y = ",
+                          input$yScreen,", z = ",input$zScreen,"))")
+           rstudioapi::insertText(text = code)
+       }
 
       invisible(stopApp())
     })

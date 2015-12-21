@@ -12,7 +12,7 @@ code will be emitted as a call to \code{lattice::cloud}.
 function.
 }
 \details{
-The intended way to use this is as follows:
+Here's how you use it:
 
 1. Highlight a symbol naming a \code{data.frame} in your R session,
    e.g. \code{mtcars},
