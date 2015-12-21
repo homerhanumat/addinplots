@@ -81,21 +81,21 @@ cloudplotAddin <- function() {
     
     output$xVar <- renderUI({
       data <- reactiveData()
-      selectInput(inputId = "xVar", label = "x",
+      selectInput(inputId = "zVar", label = "z",
                   choices = c("", find_numeric_vars(data)),
                   selected = "")
     })
     
     output$yVar <- renderUI({
       data <- reactiveData()
-      selectInput(inputId = "yVar", label = "x",
+      selectInput(inputId = "xVar", label = "x",
                   choices = c("", find_numeric_vars(data)),
                   selected = "")
     })
     
     output$zVar <- renderUI({
       data <- reactiveData()
-      selectInput(inputId = "zVar", label = "x",
+      selectInput(inputId = "yVar", label = "y",
                   choices = c("", find_numeric_vars(data)),
                   selected = "")
     })
