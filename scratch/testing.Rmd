@@ -6,6 +6,12 @@ output: html_document
 ---
 
 ```{r}
+lattice::cloud(Petal.Length ~ Sepal.Length * Petal.Width, data = iris,
+	screen = list(x = -90, y = 32, z = 0))
+```
+
+```{r}
 iris
 ```
+
 

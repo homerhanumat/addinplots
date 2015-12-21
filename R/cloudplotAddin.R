@@ -43,13 +43,15 @@ cloudplotAddin <- function() {
         uiOutput("xVar"),
         uiOutput("yVar"),
         helpText("Use these sliders to rotate the plot."),
-        sliderInput("zScreen","z",0,360,value=0,step=1),
-        sliderInput("xScreen","x",0,360,value=90,step=1),
-        sliderInput("yScreen","y",0,360,value=0,step=1)
+        sliderInput("yScreen","Around z-axis",0,360,value=0,step=1),
+        sliderInput("xScreen","Around x-axis",0,360,value=90,step=1),
+        sliderInput("zScreen","Around y-axis",0,360,value=0,step=1)
       ),
       mainPanel(
         uiOutput("pending"),
-        plotOutput("output")
+        plotOutput("output"),
+        uiOutput("main"),
+        uiOutput("pch")
         )
     )
   )
@@ -79,25 +81,50 @@ cloudplotAddin <- function() {
       data
     })
     
-    output$xVar <- renderUI({
+    reactiveVarCheck <- reactive({
+      xvar <- input$xVar
+      yvar <- input$yVar
+      zvar <- input$zVar
+      xcheck <- !is.null(xvar) && nzchar(xvar)
+      ycheck <- !is.null(yvar) && nzchar(yvar)
+      zcheck <- !is.null(zvar) && nzchar(zvar)
+      return(xcheck && ycheck && zcheck)
+    })
+    
+    output$zVar <- renderUI({
       data <- reactiveData()
       selectInput(inputId = "zVar", label = "z",
                   choices = c("", find_numeric_vars(data)),
                   selected = "")
     })
     
-    output$yVar <- renderUI({
+    output$xVar <- renderUI({
       data <- reactiveData()
       selectInput(inputId = "xVar", label = "x",
                   choices = c("", find_numeric_vars(data)),
                   selected = "")
     })
     
-    output$zVar <- renderUI({
+    output$yVar <- renderUI({
       data <- reactiveData()
       selectInput(inputId = "yVar", label = "y",
                   choices = c("", find_numeric_vars(data)),
                   selected = "")
+    })
+    
+    output$main <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      textInput(inputId = "main","Graph Title", value = "")
+    })
+    
+    output$pch <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "pch","Point Type", 
+                   min = 1, max = 25, step =1, value = 19, width = "100px")
     })
 
     output$pending <- renderUI({
@@ -111,20 +138,23 @@ cloudplotAddin <- function() {
       if (isErrorMessage(data))
         return(NULL)
       
-      xvar <- input$xVar
-      yvar <- input$yVar
-      zvar <- input$zVar
-      
-      check_var <- function(var) {
-        !is.null(var) && var != ""
-      }
-      
-      if (!(check_var(xvar) && check_var(yvar) && check_var(zvar))) {
+      if (!reactiveVarCheck()) {
         return(NULL)
       } else {
+        xvar <- input$xVar
+        yvar <- input$yVar
+        zvar <- input$zVar
         command <- paste0("lattice::cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
                           input$data, ", screen = list(x = -",input$xScreen,", y = ",
-                          input$yScreen,", z = ",input$zScreen,"))")
+                          input$yScreen,", z = ",input$zScreen,")")
+        if (!is.null(input$main) && nzchar(input$main)) {
+          command <- paste0(command,", main = \"",input$main,"\"")
+        }
+        if (!is.null(input$pch)) {
+          command <- paste0(command,",pch = ",input$pch,")")
+        } else {
+          command <- paste0(command,",pch = 19)")
+        }
         eval(parse(text = command))
       }
     })
@@ -132,23 +162,28 @@ cloudplotAddin <- function() {
     # Listen for 'done'.
     observeEvent(input$done, {
       
-      xvar <- input$xVar
-      yvar <- input$yVar
-      zvar <- input$zVar
-      
       # Emit a cloud call.
-      if (TRUE) {
-           code <- paste0("lattice::cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
+      if (reactiveVarCheck()) {
+          xvar <- input$xVar
+          yvar <- input$yVar
+          zvar <- input$zVar
+           code <- paste0("cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
                           input$data,",\n\tscreen = list(x = -",input$xScreen,", y = ",
-                          input$yScreen,", z = ",input$zScreen,"))")
+                          input$yScreen,", z = ",input$zScreen,")")
+           if (!is.null(input$main) && nzchar(input$main)) {
+             code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
+           }
+           code <- paste0(code,",\n\tpch = ",input$pch,")")
            rstudioapi::insertText(text = code)
+      } else {
+         return(NULL)
        }
 
       invisible(stopApp())
     })
   }
 
-  # Use a modal dialog as a viewr.
+  # Use a browser as a viewer.
   viewer <- browserViewer()
   runGadget(ui, server, viewer = viewer)
 
