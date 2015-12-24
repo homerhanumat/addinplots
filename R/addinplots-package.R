@@ -6,5 +6,5 @@
 #'
 #' @name addinplots
 #' @docType package
-#' @import shiny shinygadgets rstudioapi formatR lattice ggplot2
+#' @import shiny miniUI rstudioapi lattice
 NULL

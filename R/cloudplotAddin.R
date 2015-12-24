@@ -16,13 +16,22 @@
 #' @export
 cloudplotAddin <- function() {
   
-  # utility
+  # utilities:
+  
   find_numeric_vars <- function(data) {
     isNum <- function(name, data) {
       is.numeric(get(name, envir = as.environment(data)))
     }
     numNames <- sapply(names(data), isNum, data = data)
     names(data)[numNames]
+  }
+  
+  find_factor_vars <- function(data) {
+    isFac <- function(name, data) {
+      is.factor(get(name, envir = as.environment(data)))
+    }
+    facNames <- sapply(names(data), isFac, data = data)
+    names(data)[facNames]
   }
 
   # Get the document context.
@@ -33,10 +42,10 @@ cloudplotAddin <- function() {
   defaultData <- text
 
   # Generate UI for the gadget.
-  ui <- gadgetPage(
-    titlebar("Make a Cloud Plot"),
-    contentPanel(
-      sidebarPanel(
+  ui <- miniPage(
+    miniTitleBar("Make a Cloud Plot"),
+    miniContentPanel(
+      sidebarPanel(width = 3,
         textInput("data", "Data", value = defaultData),
         helpText("Choose your variables."),
         uiOutput("zVar"),
@@ -49,9 +58,17 @@ cloudplotAddin <- function() {
       ),
       mainPanel(
         uiOutput("pending"),
-        plotOutput("output"),
-        uiOutput("main"),
-        uiOutput("pch")
+        plotOutput("cloudplot")
+        ,
+        fluidRow(
+          column(width = 7, uiOutput("main")),
+          column(width = 2, uiOutput("pch"))
+        )
+        ,
+        fluidRow(
+          column(width = 4, uiOutput("group")),
+          column(width = 5, uiOutput("keypos"))
+        )
         )
     )
   )
@@ -91,6 +108,35 @@ cloudplotAddin <- function() {
       return(xcheck && ycheck && zcheck)
     })
     
+    reactiveCode <- reactive({
+      xvar <- input$xVar
+      yvar <- input$yVar
+      zvar <- input$zVar
+      code <- paste0("cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
+                     input$data,",\n\tscreen = list(x = -",input$xScreen,", y = ",
+                     input$yScreen,", z = ",input$zScreen,")")
+      if (!is.null(input$main) && nzchar(input$main)) {
+        code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
+      }
+      if (!is.null(input$pch)) {
+        code <- paste0(code,",\n\tpch = ",input$pch)
+      }
+      wantGroups <- !is.null(input$group) && nzchar(input$group)
+      if ( wantGroups ) {
+        code <- paste0(code,",\n\tgroups = ",input$group)
+        if (input$keypos == "top") {
+          code <- paste0(code, ",\n\tauto.key = TRUE")
+        } else {
+          code <- paste0(code, 
+                  ",\n\tauto.key = list(space = \"",input$keypos,"\")")
+        }
+      }
+      
+      # add closing paren:
+      code <- paste0(code,")")
+      return(code)
+    })
+    
     output$zVar <- renderUI({
       data <- reactiveData()
       selectInput(inputId = "zVar", label = "z",
@@ -126,6 +172,33 @@ cloudplotAddin <- function() {
       numericInput(inputId = "pch","Point Type", 
                    min = 1, max = 25, step =1, value = 19, width = "100px")
     })
+    
+    output$group <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      data <- reactiveData()
+      factors <- find_factor_vars(data)
+      if (length(factors) == 0) {
+        return(NULL)
+      }
+      selectInput(inputId = "group", label = "Group by:",
+                  choices = c("", factors),
+                  selected = "")
+    })
+    
+    output$keypos <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      noGroups <- is.null(input$group) || !nzchar(input$group)
+      if ( noGroups ) {
+        return(NULL)
+      }
+      selectInput(inputId = "keypos", label = "Legend position:",
+                  choices = c("top","left","right","bottom"),
+                  selected = "top")
+    })
 
     output$pending <- renderUI({
       data <- reactiveData()
@@ -133,7 +206,7 @@ cloudplotAddin <- function() {
         h4(style = "color: #AA7732;", data$message)
     })
 
-    output$output <- renderPlot({
+    output$cloudplot <- renderPlot({
       data <- reactiveData()
       if (isErrorMessage(data))
         return(NULL)
@@ -141,20 +214,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       } else {
-        xvar <- input$xVar
-        yvar <- input$yVar
-        zvar <- input$zVar
-        command <- paste0("lattice::cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
-                          input$data, ", screen = list(x = -",input$xScreen,", y = ",
-                          input$yScreen,", z = ",input$zScreen,")")
-        if (!is.null(input$main) && nzchar(input$main)) {
-          command <- paste0(command,", main = \"",input$main,"\"")
-        }
-        if (!is.null(input$pch)) {
-          command <- paste0(command,",pch = ",input$pch,")")
-        } else {
-          command <- paste0(command,",pch = 19)")
-        }
+        command <- reactiveCode()
         eval(parse(text = command))
       }
     })
@@ -164,17 +224,8 @@ cloudplotAddin <- function() {
       
       # Emit a cloud call.
       if (reactiveVarCheck()) {
-          xvar <- input$xVar
-          yvar <- input$yVar
-          zvar <- input$zVar
-           code <- paste0("cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
-                          input$data,",\n\tscreen = list(x = -",input$xScreen,", y = ",
-                          input$yScreen,", z = ",input$zScreen,")")
-           if (!is.null(input$main) && nzchar(input$main)) {
-             code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
-           }
-           code <- paste0(code,",\n\tpch = ",input$pch,")")
-           rstudioapi::insertText(text = code)
+          code <- reactiveCode()
+          rstudioapi::insertText(text = code)
       } else {
          return(NULL)
        }

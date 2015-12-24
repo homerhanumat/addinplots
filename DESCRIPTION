@@ -1,6 +1,6 @@
 Package: addinplots
 Title: Addins for Plotting
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("Homer", "White", email = "homerhanumat@gmail.com", role = c("aut", "cre"))
 Description: For use by my elementary statistics students. Provides a GUI for
     plotting functions (cloud plots, ggplot2, etc., for which we don't teach the
@@ -9,11 +9,9 @@ Depends:
     R (>= 3.0.0)
 Imports:
     shiny,
-    shinygadgets,
+    miniUI,
     rstudioapi,
-    formatR,
-    lattice,
-    ggplot2
+    lattice
 License: GPL (>=3)
 LazyData: true
 RoxygenNote: 5.0.0
