@@ -43,7 +43,7 @@ cloudplotAddin <- function() {
 
   # Generate UI for the gadget.
   ui <- miniPage(
-    miniTitleBar("Make a Cloud Plot"),
+    miniTitleBar("Cloudplot Code-Helper"),
     miniContentPanel(
       sidebarPanel(width = 3,
         textInput("data", "Data", value = defaultData),
@@ -58,11 +58,20 @@ cloudplotAddin <- function() {
       ),
       mainPanel(
         uiOutput("pending"),
-        plotOutput("cloudplot")
+        fluidRow(
+          column(width = 4,
+                 h3("The Plot"),
+                 plotOutput("cloudplot")),
+          column(width = 5,
+                 h3("The Code"),
+                 br(),
+                 verbatimTextOutput("code"))
+        )
         ,
         fluidRow(
-          column(width = 7, uiOutput("main")),
-          column(width = 2, uiOutput("pch"))
+          column(width = 5, uiOutput("main")),
+          column(width = 2, uiOutput("pch")),
+          column(width = 2, uiOutput("bw"))
         )
         ,
         fluidRow(
@@ -112,15 +121,21 @@ cloudplotAddin <- function() {
       xvar <- input$xVar
       yvar <- input$yVar
       zvar <- input$zVar
-      code <- paste0("cloud(",zvar," ~ ",xvar," * ",yvar,", data = ",
-                     input$data,",\n\tscreen = list(x = -",input$xScreen,", y = ",
-                     input$yScreen,", z = ",input$zScreen,")")
+      if ( !reactiveVarCheck() ) {
+        return("No code to show yet!")
+      }
+      code <- paste0("cloud(",zvar," ~ ",xvar," * ",yvar,",\n\tdata = ",
+                     input$data,",\n\tscreen = list(x = -",input$xScreen,",\n\t\t\ty = ",
+                     input$yScreen,",\n\t\t\tz = ",input$zScreen,")")
+      
       if (!is.null(input$main) && nzchar(input$main)) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
       }
+      
       if (!is.null(input$pch)) {
         code <- paste0(code,",\n\tpch = ",input$pch)
       }
+      
       wantGroups <- !is.null(input$group) && nzchar(input$group)
       if ( wantGroups ) {
         code <- paste0(code,",\n\tgroups = ",input$group)
@@ -130,6 +145,12 @@ cloudplotAddin <- function() {
           code <- paste0(code, 
                   ",\n\tauto.key = list(space = \"",input$keypos,"\")")
         }
+      }
+      
+      wantBW <- !is.null(input$bw) && input$bw
+      if ( wantBW ) {
+        code <- paste0(code, 
+            ",\n\tpar.settings = canonical.theme(color=FALSE)")
       }
       
       # add closing paren:
@@ -158,6 +179,13 @@ cloudplotAddin <- function() {
                   selected = "")
     })
     
+    output$plothead <- renderText({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      
+    })
+    
     output$main <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
@@ -171,6 +199,13 @@ cloudplotAddin <- function() {
       }
       numericInput(inputId = "pch","Point Type", 
                    min = 1, max = 25, step =1, value = 19, width = "100px")
+    })
+    
+    output$bw <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
     })
     
     output$group <- renderUI({
@@ -217,6 +252,10 @@ cloudplotAddin <- function() {
         command <- reactiveCode()
         eval(parse(text = command))
       }
+    })
+    
+    output$code <- renderText({
+      reactiveCode()
     })
 
     # Listen for 'done'.
