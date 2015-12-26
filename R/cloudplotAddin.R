@@ -178,17 +178,25 @@ cloudplotAddin <- function() {
 
     reactiveData <- reactive({
 
-      # Collect inputs.
+      # Get data frame
       dataString <- input$data
       
       # Check to see if there is data called 'data',
       # and access it if possible.
-      if (!nzchar(dataString))
+      if (!nzchar(dataString)) {
+        rv$groupVar <- NULL
+        rv$facetVar1 <- NULL
+        rv$facetVar2 <- NULL
         return(errorMessage("data", "No dataset available."))
+        }
 
-      if (!exists(dataString, envir = .GlobalEnv))
+      if (!exists(dataString, envir = .GlobalEnv)) {
+        rv$groupVar <- NULL
+        rv$facetVar1 <- NULL
+        rv$facetVar2 <- NULL
         return(errorMessage("data", paste("No dataset named '",
                                           dataString, "' available.")))
+      }
 
       data <- get(dataString, envir = .GlobalEnv)
       data
@@ -424,14 +432,21 @@ cloudplotAddin <- function() {
       if (length(factors) == 0) {
         return(NULL)
       }
-      if (!is.null(rv$facetVars)) {
-        availableFactors <- setdiff(factors, rv$facetVars)
+      availableFactors <- factors
+      if (entered(input$facet1)) {
+        availableFactors <- setdiff(availableFactors, input$facet1)
+      }
+      if (entered(input$facet2)) {
+        availableFactors <- setdiff(availableFactors, input$facet2)
+      }
+      if (entered(input$group)) {
+        selected <- input$group
       } else {
-        availableFactors <- factors
+        selected <- ""
       }
       selectInput(inputId = "group", label = "Group by:",
                   choices = c("", availableFactors),
-                  selected = "")
+                  selected = selected)
     })
     
     output$facet1 <- renderUI({
@@ -443,14 +458,21 @@ cloudplotAddin <- function() {
       if (length(factors) == 0) {
         return(NULL)
       }
-      if (!is.null(rv$groupVar)) {
-        availableFactors <- setdiff(factors, rv$groupVar)
+      availableFactors <- factors
+      if (entered(input$group)) {
+        availableFactors <- setdiff(availableFactors, input$group)
+      }
+      if (entered(input$facet2)) {
+        availableFactors <- setdiff(availableFactors, input$facet2)
+      }
+      if (entered(input$facet1)) {
+        selected <- input$facet1
       } else {
-        availableFactors <- factors
+        selected <- ""
       }
       selectInput(inputId = "facet1", label = "Facet by:",
                   choices = c("", availableFactors),
-                  selected = "")
+                  selected = selected)
     })
     
     output$facet2 <- renderUI({
@@ -463,15 +485,20 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       availableFactors <- factors
-      if (!is.null(rv$groupVar)) {
-        availableFactors <- setdiff(factors, rv$groupVar)
+      if (entered(input$group)) {
+        availableFactors <- setdiff(availableFactors, input$group)
       }
-      if (!is.null(rv$facetVar1)) {
-        availableFactors <- setdiff(availableFactors, rv$facetVar1)
+      if (entered(input$facet1)) {
+        availableFactors <- setdiff(availableFactors, input$facet1)
+      }
+      if (entered(input$facet2)) {
+        selected <- input$facet2
+      } else {
+        selected <- ""
       }
       selectInput(inputId = "facet2", label = "Also facet by:",
                   choices = c("", availableFactors),
-                  selected = "")
+                  selected = selected)
     })
     
     output$layrows <- renderUI({
