@@ -33,6 +33,10 @@ cloudplotAddin <- function() {
     facNames <- sapply(names(data), isFac, data = data)
     names(data)[facNames]
   }
+  
+  entered <- function(string) {
+    !is.null(string) && nzchar(string)
+  }
 
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
@@ -194,9 +198,9 @@ cloudplotAddin <- function() {
       xvar <- input$xVar
       yvar <- input$yVar
       zvar <- input$zVar
-      xcheck <- !is.null(xvar) && nzchar(xvar)
-      ycheck <- !is.null(yvar) && nzchar(yvar)
-      zcheck <- !is.null(zvar) && nzchar(zvar)
+      xcheck <- entered(xvar)
+      ycheck <- entered(yvar)
+      zcheck <- entered(zvar)
       return(xcheck && ycheck && zcheck)
     })
     
@@ -210,10 +214,10 @@ cloudplotAddin <- function() {
       
       # function and formula:
       code <- paste0("cloud(",zvar," ~ ",xvar," * ",yvar)
-      if (!is.null(input$facet1) && nzchar(input$facet1)) {
+      if (entered(input$facet1)) {
         code <- paste0(code, " | ", input$facet1)
       }
-      if (!is.null(input$facet2) && nzchar(input$facet2)) {
+      if (entered(input$facet2)) {
         code <- paste0(code, " * ", input$facet2)
       }
       
@@ -235,8 +239,7 @@ cloudplotAddin <- function() {
                      input$yScreen,",\n\t\t\tz = ",input$zScreen,")")
      
       # groups argument 
-      wantGroups <- !is.null(input$group) && nzchar(input$group)
-      if ( wantGroups ) {
+      if ( entered(input$group) ) {
         code <- paste0(code,",\n\tgroups = ",input$group)
         code <- paste0(code, ",\n\tauto.key = list(",
                        "\n\t\tspace = \"", input$keypos, "\"",
@@ -247,31 +250,31 @@ cloudplotAddin <- function() {
       }
       
       # main, xlab, ylab. zlab
-      if (!is.null(input$main) && nzchar(input$main)) {
+      if (entered(input$main)) {
         code <- paste0(code, ",\n\tmain = list(label=\"",input$main, "\"",
                        ",\n\t\tcex = ",input$mainsize,
                        ")")
       }
       
-      if (!is.null(input$sub) && nzchar(input$sub)) {
+      if (entered(input$sub)) {
         code <- paste0(code, ",\n\tsub = list(label=\"",input$sub, "\"",
                        ",\n\t\tcex = ",input$subsize,
                        ")")
       }
       
-      if (!is.null(input$xlab) && nzchar(input$xlab)) {
+      if (entered(input$xlab)) {
         code <- paste0(code, ",\n\txlab = list(label=\"",input$xlab, "\"",
                        ",\n\t\tcex = ",input$xlabsize,
                        ")")
       }
       
-      if (!is.null(input$ylab) && nzchar(input$ylab)) {
+      if (entered(input$ylab)) {
         code <- paste0(code, ",\n\tylab = list(label=\"",input$ylab, "\"",
                        ",\n\t\tcex = ",input$ylabsize,
                        ")")
       }
       
-      if (!is.null(input$zlab) && nzchar(input$zlab)) {
+      if (entered(input$zlab)) {
         code <- paste0(code, ",\n\tzlab = list(label=\"",input$zlab, "\"",
                        ",\n\t\tcex = ",input$zlabsize,
                        ")")
@@ -464,7 +467,7 @@ cloudplotAddin <- function() {
         availableFactors <- setdiff(factors, rv$groupVar)
       }
       if (!is.null(rv$facetVar1)) {
-        availableFactors <- setdiff(factors, rv$facetVar1)
+        availableFactors <- setdiff(availableFactors, rv$facetVar1)
       }
       selectInput(inputId = "facet2", label = "Also facet by:",
                   choices = c("", availableFactors),
@@ -472,7 +475,7 @@ cloudplotAddin <- function() {
     })
     
     output$layrows <- renderUI({
-      if (is.null(input$facet1) || !nzchar(input$facet1)) {
+      if (!entered(input$facet1)) {
         return(NULL)
       }
       data <- reactiveData()
@@ -482,7 +485,7 @@ cloudplotAddin <- function() {
     })
     
     output$laycols <- renderUI({
-      if (is.null(input$facet1) || !nzchar(input$facet1)) {
+      if (!entered(input$facet1)) {
         return(NULL)
       }
       numericInput(inputId = "laycols", label = "Columns in Layout",
@@ -490,7 +493,7 @@ cloudplotAddin <- function() {
     })
     
     output$layvarnames <- renderUI({
-      if (is.null(input$facet1) || !nzchar(input$facet1)) {
+      if (!entered(input$facet1)) {
         return(NULL)
       }
       checkboxInput(inputId = "layvarnames", 
@@ -501,8 +504,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      noGroups <- is.null(input$group) || !nzchar(input$group)
-      if ( noGroups ) {
+      if ( !entered(input$group) ) {
         return(NULL)
       }
       selectInput(inputId = "keypos", label = "Legend position:",
@@ -514,8 +516,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      noGroups <- is.null(input$group) || !nzchar(input$group)
-      if ( noGroups ) {
+      if ( !entered(input$group) ) {
         return(NULL)
       }
       textInput(inputId = "keytitle", label = "Legend title:",
@@ -526,8 +527,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      noGroups <- is.null(input$group) || !nzchar(input$group)
-      if ( noGroups ) {
+      if ( !entered(input$group) ) {
         return(NULL)
       }
       numericInput(inputId = "keytitlesize", label = "Title Size",
@@ -538,8 +538,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      noGroups <- is.null(input$group) || !nzchar(input$group)
-      if ( noGroups ) {
+      if ( !entered(input$group) ) {
         return(NULL)
       }
       numericInput(inputId = "keycolumns", label = "Key Columns",
