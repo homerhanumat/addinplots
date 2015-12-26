@@ -69,7 +69,7 @@ cloudplotAddin <- function() {
         fluidRow(
           column(width = 4,
                  h3("The Plot"),
-                 plotOutput("cloudplot1")),
+                 plotOutput("plot1")),
           column(width = 5,
                  h3("The Code"),
                  br(),
@@ -93,7 +93,7 @@ cloudplotAddin <- function() {
           fluidRow(
             column(width = 4,
                    h3("The Plot"),
-                   plotOutput("cloudplot2")),
+                   plotOutput("plot2")),
             column(width = 5,
                    h3("The Code"),
                    br(),
@@ -117,7 +117,7 @@ cloudplotAddin <- function() {
           fluidRow(
             column(width = 4,
                    h3("The Plot"),
-                   plotOutput("cloudplot3")),
+                   plotOutput("plot3")),
             column(width = 5,
                    h3("The Code"),
                    br(),
@@ -163,37 +163,20 @@ cloudplotAddin <- function() {
 
   # Server code for the gadget.
   server <- function(input, output, session) {
-    
-    rv <- reactiveValues(
-      facetVar1 = NULL,
-      facetVar2 = NULL,
-      groupVar = NULL
-    )
-    
-    observe({
-      rv$groupVar <- input$group
-      rv$facetVar1 <- input$facet1
-      rv$facetVar2 <- input$facet2
-    })
 
+
+################################
+## Reactive functions
+################################
+    
+    # fetch the data frame
     reactiveData <- reactive({
-
-      # Get data frame
       dataString <- input$data
-      
-      # Check to see if there is data called 'data',
-      # and access it if possible.
       if (!nzchar(dataString)) {
-        rv$groupVar <- NULL
-        rv$facetVar1 <- NULL
-        rv$facetVar2 <- NULL
         return(errorMessage("data", "No dataset available."))
         }
 
       if (!exists(dataString, envir = .GlobalEnv)) {
-        rv$groupVar <- NULL
-        rv$facetVar1 <- NULL
-        rv$facetVar2 <- NULL
         return(errorMessage("data", paste("No dataset named '",
                                           dataString, "' available.")))
       }
@@ -202,6 +185,7 @@ cloudplotAddin <- function() {
       data
     })
     
+    # check to see if primary variables have been entered
     reactiveVarCheck <- reactive({
       xvar <- input$xVar
       yvar <- input$yVar
@@ -212,6 +196,7 @@ cloudplotAddin <- function() {
       return(xcheck && ycheck && zcheck)
     })
     
+    # our code-maker
     reactiveCode <- reactive({
       xvar <- input$xVar
       yvar <- input$yVar
@@ -233,7 +218,7 @@ cloudplotAddin <- function() {
       code <- paste0(code, ",\n\tdata = ",input$data)
       
       # layout information
-      if (!is.null(input$layrows) && nzchar(input$laycols)) {
+      if (entered(input$facet1) && !is.null(input$layrows) && nzchar(input$laycols)) {
         code <- paste0(code, ",\n\tlayout = c(",input$laycols,",",input$layrows,")")
       }
       
@@ -305,6 +290,52 @@ cloudplotAddin <- function() {
       return(code)
     })
     
+    # our plot-maker
+    makeplot <- reactive({
+      data <- reactiveData()
+      if (isErrorMessage(data))
+        return(NULL)
+      
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      } else {
+        command <- reactiveCode()
+        eval(parse(text = command))
+      }
+    })
+    
+    # compute a reasonable layout
+    reactiveLayout <- reactive({
+      
+      getNumberLevels <- function(varName) {
+        if (entered(varName)) {
+          var <- get(varName, envir = as.environment(reactiveData()))
+          return(length(levels(var)))
+        } else {
+          return(NULL)
+        }
+      }
+      
+      f1 <- input$facet1
+      f2 <- input$facet2
+      
+      if (entered(f1) && !entered(f2)) {
+        rows <- getNumberLevels(f1)
+        cols <- 1
+      }
+      if (entered(f1) && entered(f2)) {
+        rows <- getNumberLevels(f1)
+        cols <- getNumberLevels(f2)
+      }
+      
+      return(list(rows = rows, cols = cols))
+      
+    })
+    
+############################
+## Primary Variables
+############################
+    
     output$zVar <- renderUI({
       data <- reactiveData()
       selectInput(inputId = "zVar", label = "z",
@@ -326,101 +357,22 @@ cloudplotAddin <- function() {
                   selected = "")
     })
     
-    output$plothead <- renderText({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      
+##############################
+## For groups tab
+#############################
+    
+    output$pending1 <- renderUI({
+      data <- reactiveData()
+      if (isErrorMessage(data))
+        h4(style = "color: #AA7732;", data$message)
     })
     
-    output$main <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "main","Graph Title", value = "")
-    })
-
-    output$mainsize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "mainsize","Graph Title Size",
-                   min = 0, max = 4, value = 1, step = 0.1)
-    })
-
-    output$sub <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "sub","Graph Sub-title", value = "")
-    })
-
-    output$subsize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "subsize","Graph Sub-title Size",
-                   min = 0, max = 4, value = 1, step = 0.1)
-    })
-
-    output$xlab <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "xlab","x-Label", value = "")
-    })
-
-    output$xlabsize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "xlabsize","x-Label Size",
-                   min = 0, max = 4, value = 1, step = 0.1)
-    })
-
-    output$ylab <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "ylab","y-Label", value = "")
-    })
-
-    output$ylabsize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "ylabsize","y-Label Size",
-                   min = 0, max = 4, value = 1, step = 0.1)
-    })
-
-    output$zlab <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "zlab","z-Label", value = "")
-    })
-
-    output$zlabsize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "zlabsize","z-Label Size",
-                   min = 0, max = 4, value = 1, step = 0.1)
+    output$plot1 <- renderPlot({
+      makeplot()
     })
     
-    output$pch <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "pch","Point Type", 
-                   min = 1, max = 25, step =1, value = 19, width = "100px")
-    })
-    
-    output$bw <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
+    output$code1 <- renderText({
+      reactiveCode()
     })
     
     output$group <- renderUI({
@@ -447,6 +399,70 @@ cloudplotAddin <- function() {
       selectInput(inputId = "group", label = "Group by:",
                   choices = c("", availableFactors),
                   selected = selected)
+    })
+    
+    output$keypos <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if ( !entered(input$group) ) {
+        return(NULL)
+      }
+      selectInput(inputId = "keypos", label = "Legend position:",
+                  choices = c("top","left","right","bottom"),
+                  selected = "top")
+    })
+    
+    output$keytitle <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if ( !entered(input$group) ) {
+        return(NULL)
+      }
+      textInput(inputId = "keytitle", label = "Legend title:",
+                value = input$group)
+    })
+    
+    output$keytitlesize <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if ( !entered(input$group) ) {
+        return(NULL)
+      }
+      numericInput(inputId = "keytitlesize", label = "Title Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
+    })
+    
+    output$keycolumns <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if ( !entered(input$group) ) {
+        return(NULL)
+      }
+      numericInput(inputId = "keycolumns", label = "Key Columns",
+                   min = 1, max = length(levels(input$group)), value = 1, step = 1)
+    })
+    
+
+###############################
+## for facets tab
+###############################
+    
+    output$pending2 <- renderUI({
+      data <- reactiveData()
+      if (isErrorMessage(data))
+        h4(style = "color: #AA7732;", data$message)
+    })
+    
+    output$plot2 <- renderPlot({
+      makeplot()
+    })
+    
+    output$code2 <- renderText({
+      reactiveCode()
     })
     
     output$facet1 <- renderUI({
@@ -496,27 +512,32 @@ cloudplotAddin <- function() {
       } else {
         selected <- ""
       }
-      selectInput(inputId = "facet2", label = "Also facet by:",
-                  choices = c("", availableFactors),
-                  selected = selected)
+      anyLeft <- length(availableFactors) > 0
+      if ( entered(input$facet1) && anyLeft ) {
+        selectInput(inputId = "facet2", label = "Also facet by:",
+                    choices = c("", availableFactors),
+                    selected = selected)
+      }
     })
     
     output$layrows <- renderUI({
       if (!entered(input$facet1)) {
         return(NULL)
       }
-      data <- reactiveData()
-      facVar <- get(input$facet1, envir = as.environment(data))
+      layout <- reactiveLayout()
+      rows <- layout$rows
       numericInput(inputId = "layrows", label = "Rows in Layout",
-                   min = 1, value = length(levels(facVar)))
+                   min = 1, value = rows)
     })
     
     output$laycols <- renderUI({
       if (!entered(input$facet1)) {
         return(NULL)
       }
+      layout <- reactiveLayout()
+      cols <- layout$cols
       numericInput(inputId = "laycols", label = "Columns in Layout",
-                   min = 1, value = 1)
+                   min = 1, value = cols)
     })
     
     output$layvarnames <- renderUI({
@@ -527,62 +548,9 @@ cloudplotAddin <- function() {
                     label = "Show Facet-Variable Names")
     })
     
-    output$keypos <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      if ( !entered(input$group) ) {
-        return(NULL)
-      }
-      selectInput(inputId = "keypos", label = "Legend position:",
-                  choices = c("top","left","right","bottom"),
-                  selected = "top")
-    })
-    
-    output$keytitle <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      if ( !entered(input$group) ) {
-        return(NULL)
-      }
-      textInput(inputId = "keytitle", label = "Legend title:",
-                  value = input$group)
-    })
-    
-    output$keytitlesize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      if ( !entered(input$group) ) {
-        return(NULL)
-      }
-      numericInput(inputId = "keytitlesize", label = "Title Size",
-                  min = 0, max = 4, value = 1, step = 0.1)
-    })
-    
-    output$keycolumns <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      if ( !entered(input$group) ) {
-        return(NULL)
-      }
-      numericInput(inputId = "keycolumns", label = "Key Columns",
-                   min = 1, max = length(levels(input$group)), value = 1, step = 1)
-    })
-
-    output$pending1 <- renderUI({
-      data <- reactiveData()
-      if (isErrorMessage(data))
-        h4(style = "color: #AA7732;", data$message)
-    })
-    
-    output$pending2 <- renderUI({
-      data <- reactiveData()
-      if (isErrorMessage(data))
-        h4(style = "color: #AA7732;", data$message)
-    })
+##############################
+## for "other" tab
+##############################
     
     output$pending3 <- renderUI({
       data <- reactiveData()
@@ -590,48 +558,112 @@ cloudplotAddin <- function() {
         h4(style = "color: #AA7732;", data$message)
     })
     
-    makeplot <- reactive({
-      data <- reactiveData()
-      if (isErrorMessage(data))
-        return(NULL)
-      
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      } else {
-        command <- reactiveCode()
-        eval(parse(text = command))
-      }
-    })
-
-    output$cloudplot1 <- renderPlot({
+    output$plot3 <- renderPlot({
       makeplot()
-    })
-    
-    output$cloudplot2 <- renderPlot({
-      makeplot()
-    })
-    
-    output$cloudplot3 <- renderPlot({
-      makeplot()
-    })
-    
-    output$code1 <- renderText({
-      reactiveCode()
-    })
-    
-    output$code2 <- renderText({
-      reactiveCode()
     })
     
     output$code3 <- renderText({
       reactiveCode()
     })
     
+    output$main <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      textInput(inputId = "main","Graph Title", value = "")
+    })
+    
+    output$mainsize <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "mainsize","Graph Title Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
+    })
+    
+    output$sub <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      textInput(inputId = "sub","Graph Sub-title", value = "")
+    })
+    
+    output$subsize <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "subsize","Graph Sub-title Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
+    })
+    
+    output$xlab <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      textInput(inputId = "xlab","x-Label", value = "")
+    })
+    
+    output$xlabsize <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "xlabsize","x-Label Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
+    })
+    
+    output$ylab <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      textInput(inputId = "ylab","y-Label", value = "")
+    })
+    
+    output$ylabsize <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "ylabsize","y-Label Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
+    })
+    
+    output$zlab <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      textInput(inputId = "zlab","z-Label", value = "")
+    })
+    
+    output$zlabsize <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "zlabsize","z-Label Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
+    })
+    
+    output$pch <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "pch","Point Type", 
+                   min = 1, max = 25, step =1, value = 19, width = "100px")
+    })
+    
+    output$bw <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
+    })
+    
+#######################
+## Finish Up
+#######################
 
-    # Listen for 'done'.
+    # Listen for Done.
     observeEvent(input$done, {
       
-      # Emit a cloud call.
+      # Get code to user:
       if (reactiveVarCheck()) {
           code <- reactiveCode()
           rstudioapi::insertText(text = code)
