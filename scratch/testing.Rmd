@@ -5,14 +5,24 @@ date: "December 20, 2015"
 output: html_document
 ---
 
-```{r}
-lattice::cloud(Petal.Length ~ Sepal.Length * Petal.Width, data = iris,
-	screen = list(x = -90, y = 32, z = 0), groups = Species,
-	auto.key = list(space = "bottom"))
+```{r include = FALSE}
+library(lattice)
+library(tigerstats)
 ```
 
 ```{r}
-iris
+m111survey
 ```
+
+```{r}
+xyplot(Petal.Length ~ Petal.Width, data = iris,
+       groups = Species, type = c("p","r"))
+```
+
+```{r}
+
+```
+
+
 
 
