@@ -47,6 +47,7 @@ cloudplotAddin <- function() {
 
   # Generate UI for the gadget.
   ui <- miniPage(
+    includeHighlightJs(),
     miniTitleBar("Cloudplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
@@ -73,7 +74,7 @@ cloudplotAddin <- function() {
           column(width = 5,
                  h3("The Code"),
                  br(),
-                 verbatimTextOutput("code1"))
+                 uiOutput("code1", container = rCodeContainer))
         )
         ,
         fluidRow(
@@ -97,7 +98,7 @@ cloudplotAddin <- function() {
             column(width = 5,
                    h3("The Code"),
                    br(),
-                   verbatimTextOutput("code2"))
+                   uiOutput("code2", container = rCodeContainer))
           )
           ,
           fluidRow(
@@ -121,7 +122,7 @@ cloudplotAddin <- function() {
             column(width = 5,
                    h3("The Code"),
                    br(),
-                   verbatimTextOutput("code3"))
+                   uiOutput("code3", container = rCodeContainer))
           )
           ,
           fluidRow(
@@ -371,7 +372,8 @@ cloudplotAddin <- function() {
       makeplot()
     })
     
-    output$code1 <- renderText({
+    output$code1 <- renderCode({
+      highlightCode(session, "code1")
       reactiveCode()
     })
     
@@ -461,7 +463,8 @@ cloudplotAddin <- function() {
       makeplot()
     })
     
-    output$code2 <- renderText({
+    output$code2 <- renderCode({
+      highlightCode(session, "code2")
       reactiveCode()
     })
     
@@ -562,7 +565,8 @@ cloudplotAddin <- function() {
       makeplot()
     })
     
-    output$code3 <- renderText({
+    output$code3 <- renderCode({
+      highlightCode(session, "code3")
       reactiveCode()
     })
     

@@ -11,16 +11,13 @@ library(tigerstats)
 ```
 
 ```{r}
-verlander
+Height <- equal.count(m111survey$height, number = 3, overlap = 0.1)
+gpa <- equal.count(m111survey$GPA, number = 3, overlap = 0.1)
+densityplot(~fastest|Height*gpa,data = m111survey)
 ```
 
 ```{r}
-xyplot(Petal.Length ~ Petal.Width, data = iris,
-       groups = Species, type = c("p","r"))
-```
-
-```{r}
-
+m111survey
 ```
 
 
