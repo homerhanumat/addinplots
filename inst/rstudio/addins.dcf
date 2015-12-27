@@ -1,4 +1,9 @@
 Name: Make a Cloud Plot
-Description: Interactively make a cloud plot..
+Description: Interactively make a cloud plot.
 Binding: cloudplotAddin
+Interactive: true
+
+Name: Make a Density Plot
+Description: Interactively make a denisty plot.
+Binding: densityplotAddin
 Interactive: true
