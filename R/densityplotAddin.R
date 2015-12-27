@@ -16,7 +16,7 @@
 #' @export
 densityplotAddin <- function() {
   
-  # utilities:
+  # utilities: --------------------------------------
   
   find_numeric_vars <- function(data) {
     isNum <- function(name, data) {
@@ -34,8 +34,25 @@ densityplotAddin <- function() {
     names(data)[facNames]
   }
   
+  find_facnum_vars <- function(data) {
+    isFacNum <- function(name, data) {
+      var <- get(name, envir = as.environment(data))
+      is.factor(var) || is.numeric(var)
+    }
+    facNumNames <- sapply(names(data), isFacNum, data = data)
+    names(data)[facNumNames]
+  }
+  
   entered <- function(string) {
     !is.null(string) && nzchar(string)
+  }
+  
+  suggestedName <- function(varName) {
+    if (tolower(varName) != varName) {
+      suggestion <- tolower(varName)
+    } else {
+      suggestion <- Hmisc::capitalize(varName)
+    }
   }
 
   # Get the document context.
@@ -45,9 +62,8 @@ densityplotAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
 
-  # Generate UI for the gadget.
+  # UI for gadget ---------------------------------
   ui <- miniPage(
-    includeHighlightJs(),
     miniTitleBar("Densityplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
@@ -68,7 +84,7 @@ densityplotAddin <- function() {
           column(width = 5,
                  h3("The Code"),
                  br(),
-                 uiOutput("code1", container = rCodeContainer))
+                 verbatimTextOutput("code1"))
         )
         ,
         fluidRow(
@@ -92,12 +108,24 @@ densityplotAddin <- function() {
             column(width = 5,
                    h3("The Code"),
                    br(),
-                   uiOutput("code2", container = rCodeContainer))
+                   verbatimTextOutput("code2"))
           )
           ,
           fluidRow(
             column(width = 4, uiOutput("facet1")),
             column(width = 4, uiOutput("facet2"))
+          )
+          ,
+          fluidRow(
+            column(width = 2, uiOutput("f1name")),
+            column(width = 2, uiOutput("f1number")),
+            column(width = 2, uiOutput("f1overlap"))
+          )
+          ,
+          fluidRow(
+            column(width = 2, uiOutput("f2name")),
+            column(width = 2, uiOutput("f2number")),
+            column(width = 2, uiOutput("f2overlap"))
           )
           ,
           fluidRow(
@@ -117,7 +145,7 @@ densityplotAddin <- function() {
             column(width = 5,
                    h3("The Code"),
                    br(),
-                   uiOutput("code3", container = rCodeContainer))
+                   verbatimTextOutput("code3"))
           )
           ,
           fluidRow(
@@ -157,9 +185,15 @@ densityplotAddin <- function() {
   # Server code for the gadget.
   server <- function(input, output, session) {
 
+## Reactive Values ----------------
+###########################
+    
+    rv <- reactiveValues(
+      shingle1 = FALSE,
+      shingle2 = FALSE
+    )
 
-################################
-## Reactive functions
+## Reactive functions -------------------
 ################################
     
     # fetch the data frame
@@ -190,13 +224,36 @@ densityplotAddin <- function() {
         return("No code to show yet!")
       }
       
+      code <- ""
+      
+      # lead-up shingle-maker(s)
+      if (entered(input$f1name)) {
+        code <- paste0(code,input$f1name," <- equal.count(",input$data,
+                       "$",input$facet1,
+                       ", number = ",input$f1number,", overlap = ",input$f1overlap,
+                       ")\n")
+      }
+      
+      if (entered(input$f2name)) {
+        code <- paste0(code,input$f2name,"<- equal.count(",input$data,
+                       "$",input$facet2,
+                       ", number = ",input$f2number,", overlap = ",input$f2overlap,
+                       ")\n")
+      }
+      
       # function and formula:
-      code <- paste0("densityplot( ~ ",xvar)
-      if (entered(input$facet1)) {
+      code <- paste0(code,"densityplot( ~ ",xvar)
+      if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }
-      if (entered(input$facet2)) {
+      if (entered(input$facet1) && rv$shingle1 && entered(input$f1name)) {
+        code <- paste0(code, " | ", input$f1name)
+      }
+      if (entered(input$facet2) && !rv$shingle2) {
         code <- paste0(code, " * ", input$facet2)
+      }
+      if (entered(input$facet2) && rv$shingle2 && entered(input$f2name)) {
+        code <- paste0(code, " * ", input$f2name)
       }
       
       # the data argument
@@ -305,11 +362,17 @@ densityplotAddin <- function() {
     
     # compute a reasonable layout
     reactiveLayout <- reactive({
-      
       getNumberLevels <- function(varName) {
+        if (rv$shingle1 && varName == input$f1name) {
+          return(input$f1number)
+        }
+        if (rv$shingle2 && varName == input$f2name) {
+          return(input$f2number)
+        }
+        # if we get this far, the facetting variable is a factor
         if (entered(varName)) {
           var <- get(varName, envir = as.environment(reactiveData()))
-          return(length(levels(var)))
+            return(length(levels(var)))
         } else {
           return(NULL)
         }
@@ -319,20 +382,28 @@ densityplotAddin <- function() {
       f2 <- input$facet2
       
       if (entered(f1) && !entered(f2)) {
-        rows <- getNumberLevels(f1)
+        var1 <- ifelse(rv$shingle1, input$f1name, f1)
+        rows <- getNumberLevels(var1)
         cols <- 1
+        res <- list(rows = rows, cols = cols)
+        return(res)
       }
       if (entered(f1) && entered(f2)) {
-        rows <- getNumberLevels(f1)
-        cols <- getNumberLevels(f2)
+        var1 <- ifelse(rv$shingle1, input$f1name, f1)
+        var2 <- ifelse(rv$shingle2, input$f2name, f2)
+        rows <- getNumberLevels(var1)
+        cols <- getNumberLevels(var2)
+        res <- list(rows = rows, cols = cols)
+        return(res)
       }
-      
-      return(list(rows = rows, cols = cols))
+      # safety vakues:
+      res <- list(rows = 1, cols = 1)
+      return(res)
       
     })
     
-############################
-## Primary Variables
+
+## Primary Variables --------------------
 ############################
     
     output$xVar <- renderUI({
@@ -342,8 +413,8 @@ densityplotAddin <- function() {
                   selected = "")
     })
     
-##############################
-## For groups tab
+
+## For groups tab -------------------------
 #############################
     
     output$pending1 <- renderUI({
@@ -356,8 +427,7 @@ densityplotAddin <- function() {
       makeplot()
     })
     
-    output$code1 <- renderCode({
-      highlightCode(session, "code1")
+    output$code1 <- renderText({
       reactiveCode()
     })
     
@@ -433,8 +503,8 @@ densityplotAddin <- function() {
     })
     
 
-###############################
-## for facets tab
+
+## for facets tab --------------------
 ###############################
     
     output$pending2 <- renderUI({
@@ -447,8 +517,7 @@ densityplotAddin <- function() {
       makeplot()
     })
     
-    output$code2 <- renderCode({
-      highlightCode(session, "code2")
+    output$code2 <- renderText({
       reactiveCode()
     })
     
@@ -457,24 +526,26 @@ densityplotAddin <- function() {
         return(NULL)
       }
       data <- reactiveData()
-      factors <- find_factor_vars(data)
-      if (length(factors) == 0) {
+      facNumVars <- find_facnum_vars(data)
+      if (length(facNumVars) == 0) {
         return(NULL)
       }
-      availableFactors <- factors
+      available <- facNumVars
+      available <- setdiff(available, input$xVar)
       if (entered(input$group)) {
-        availableFactors <- setdiff(availableFactors, input$group)
+        available <- setdiff(available, input$group)
       }
       if (entered(input$facet2)) {
-        availableFactors <- setdiff(availableFactors, input$facet2)
+        available <- setdiff(available, input$facet2)
       }
       if (entered(input$facet1)) {
         selected <- input$facet1
       } else {
         selected <- ""
       }
+      # revise rv
       selectInput(inputId = "facet1", label = "Facet by:",
-                  choices = c("", availableFactors),
+                  choices = c("", available),
                   selected = selected)
     })
     
@@ -483,28 +554,125 @@ densityplotAddin <- function() {
         return(NULL)
       }
       data <- reactiveData()
-      factors <- find_factor_vars(data)
-      if (length(factors) == 0) {
+      facNumVars <- find_facnum_vars(data)
+      if (length(facNumVars) == 0) {
         return(NULL)
       }
-      availableFactors <- factors
+      available <- facNumVars
+      available <- setdiff(available, input$xVar)
       if (entered(input$group)) {
-        availableFactors <- setdiff(availableFactors, input$group)
+        available <- setdiff(available, input$group)
       }
       if (entered(input$facet1)) {
-        availableFactors <- setdiff(availableFactors, input$facet1)
+        available <- setdiff(available, input$facet1)
       }
       if (entered(input$facet2)) {
         selected <- input$facet2
       } else {
         selected <- ""
       }
-      anyLeft <- length(availableFactors) > 0
+      anyLeft <- length(available) > 0
       if ( entered(input$facet1) && anyLeft ) {
         selectInput(inputId = "facet2", label = "Also facet by:",
-                    choices = c("", availableFactors),
+                    choices = c("", available),
                     selected = selected)
       }
+    })
+    
+    output$f1name <- renderUI({
+      if (!entered(input$facet1)) {
+        rv$shingle1 <- FALSE
+        return(NULL)
+      }
+      data <- reactiveData()
+      var <- get(input$facet1, envir = as.environment(data))
+      if (is.factor(var)) {
+        rv$shingle1 <- FALSE
+        return(NULL)
+      }
+      rv$shingle1 <- TRUE
+      textInput(inputId = "f1name", label = "Shingle Name",
+                value = suggestedName(input$facet1))
+    })
+    
+    output$f1number <- renderUI({
+      if (!entered(input$facet1)) {
+        rv$shingle1 <- FALSE
+        return(NULL)
+      }
+      data <- reactiveData()
+      var <- get(input$facet1, envir = as.environment(data))
+      if (is.factor(var)) {
+        rv$shingle1 <- FALSE
+        return(NULL)
+      }
+      rv$shingle1 <- TRUE
+      numericInput(inputId = "f1number", label = "How Many?",
+                min = 2, value = 2)
+    })
+    
+    output$f1overlap <- renderUI({
+      if (!entered(input$facet1)) {
+        rv$shingle1 <- FALSE
+        return(NULL)
+      }
+      data <- reactiveData()
+      var <- get(input$facet1, envir = as.environment(data))
+      if (is.factor(var)) {
+        rv$shingle1 <- FALSE
+        return(NULL)
+      }
+      rv$shingle1 <- TRUE
+      numericInput(inputId = "f1overlap", label = "Overlap",
+                   min = 0, value = 0.1)
+    })
+    
+    output$f2name <- renderUI({
+      if (!entered(input$facet2)) {
+        rv$shingle2 <- FALSE
+        return(NULL)
+      }
+      data <- reactiveData()
+      var <- get(input$facet2, envir = as.environment(data))
+      if (is.factor(var)) {
+        rv$shingle2 <- FALSE
+        return(NULL)
+      }
+      rv$shingle2 <- TRUE
+      textInput(inputId = "f2name", label = "Shingle 2 Name",
+                value = suggestedName(input$facet2))
+    })
+    
+    output$f2number <- renderUI({
+      if (!entered(input$facet2)) {
+        rv$shingle2 <- FALSE
+        return(NULL)
+      }
+      data <- reactiveData()
+      var <- get(input$facet2, envir = as.environment(data))
+      if (is.factor(var)) {
+        rv$shingle2 <- FALSE
+        return(NULL)
+      }
+      rv$shingle2 <- TRUE
+      numericInput(inputId = "f2number", label = "How Many?",
+                   min = 2, value = 2)
+    })
+    
+    output$f2overlap <- renderUI({
+      if (!entered(input$facet2)) {
+        rv$shingle2 <- FALSE
+        return(NULL)
+      }
+      data <- reactiveData()
+      var <- get(input$facet2, envir = as.environment(data))
+      if (is.factor(var)) {
+        rv$shingle2 <- FALSE
+        return(NULL)
+      }
+      rv$shingle2 <- TRUE
+      numericInput(inputId = "f2overlap", label = "Overlap",
+                   min = 0, value = 0.1)
     })
     
     output$layrows <- renderUI({
@@ -535,8 +703,8 @@ densityplotAddin <- function() {
                     label = "Show Facet-Variable Names")
     })
     
-##############################
-## for "other" tab
+
+## for "other" tab -------------------
 ##############################
     
     output$pending3 <- renderUI({
@@ -549,8 +717,7 @@ densityplotAddin <- function() {
       makeplot()
     })
     
-    output$code3 <- renderCode({
-      highlightCode(session, "code3")
+    output$code3 <- renderText({
       reactiveCode()
     })
     
@@ -612,7 +779,7 @@ densityplotAddin <- function() {
         return(NULL)
       }
       numericInput(inputId = "adjust", label = "Adjust Bandwidth", value = 1,
-                    min = 0.1, width = "100px", ste = 0.1)
+                    min = 0.1, width = "100px", step = 0.1)
     })
     
     output$kernel <- renderUI({
@@ -646,8 +813,8 @@ densityplotAddin <- function() {
       checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
     })
     
-#######################
-## Finish Up
+
+## Finish Up ----------------------
 #######################
 
     # Listen for Done.

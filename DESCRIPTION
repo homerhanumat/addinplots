@@ -8,10 +8,11 @@ Description: For use by my elementary statistics students. Provides a GUI for
 Depends:
     R (>= 3.0.0)
 Imports:
-    shiny,
+    Hmisc,
+    lattice,
     miniUI,
     rstudioapi,
-    lattice
+    shiny
 License: GPL (>=3)
 LazyData: true
 RoxygenNote: 5.0.0
