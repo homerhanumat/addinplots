@@ -8,9 +8,9 @@
 #'
 #' 1. Highlight a symbol naming a \code{data.frame} in your R session,
 #'    e.g. \code{mtcars},
-#' 2. Execute this addin and interactively build the plot..
+#' 2. Execute this addin and interactively build the plot.
 #'
-#' When you're happy with the plot, press Done.  The code performing for
+#' When you're happy with the plot, press Done.  The code for
 #' the plot  will be be placed at the cursor position.
 #'
 #' @export
@@ -199,7 +199,8 @@ cloudplotAddin <- function() {
     
     rv <- reactiveValues(
       shingle1 = FALSE,
-      shingle2 = FALSE
+      shingle2 = FALSE,
+      code = NULL
     )
 
 
@@ -234,7 +235,7 @@ cloudplotAddin <- function() {
     })
     
     # our code-maker
-    reactiveCode <- reactive({
+    observe({
       xvar <- input$xVar
       yvar <- input$yVar
       zvar <- input$zVar
@@ -378,14 +379,14 @@ cloudplotAddin <- function() {
       }
       
       # zoom argument
-      wantZoom <- !is.null(input$zoom) && input$zoom != 1
+      wantZoom <- !is.null(input$zoom) && is.numeric(input$zoom) && input$zoom != 1
       if ( wantZoom ) {
         code <- paste0(code, ",\n\tzoom = ",input$zoom)
       }
       
       # add closing paren:
       code <- paste0(code,")")
-      return(code)
+      rv$code <- code
     })
     
     # our plot-maker
@@ -397,7 +398,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       } else {
-        command <- reactiveCode()
+        command <- rv$code
         eval(parse(text = command))
       }
     })
@@ -490,7 +491,7 @@ cloudplotAddin <- function() {
     })
     
     output$code1 <- renderText({
-      reactiveCode()
+      rv$code
     })
     
     output$group <- renderUI({
@@ -580,7 +581,7 @@ cloudplotAddin <- function() {
     })
     
     output$code2 <- renderText({
-      reactiveCode()
+      rv$code
     })
     
     output$facet1 <- renderUI({
@@ -766,6 +767,14 @@ cloudplotAddin <- function() {
                    min = 1, value = cols)
     })
     
+    output$layvarnames <- renderUI({
+      if (!entered(input$facet1)) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "layvarnames", 
+                    label = "Show Facet-Variable Names")
+    })
+    
 
 ## for "other" tab -----------------
 ##############################
@@ -781,7 +790,7 @@ cloudplotAddin <- function() {
     })
     
     output$code3 <- renderText({
-      reactiveCode()
+      rv$code
     })
     
     output$main <- renderUI({
@@ -890,7 +899,7 @@ cloudplotAddin <- function() {
       
       # Get code to user:
       if (reactiveVarCheck()) {
-          code <- reactiveCode()
+          code <- rv$code
           rstudioapi::insertText(text = code)
       } else {
          return(NULL)

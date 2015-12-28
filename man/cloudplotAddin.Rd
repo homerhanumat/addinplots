@@ -16,9 +16,9 @@ Here's how you use it:
 
 1. Highlight a symbol naming a \code{data.frame} in your R session,
    e.g. \code{mtcars},
-2. Execute this addin, to interactively subset it.
+2. Execute this addin and interactively build the plot.
 
-When you're done, the code performing this operation will be emitted
-at the cursor position.
+When you're happy with the plot, press Done.  The code for
+the plot  will be be placed at the cursor position.
 }
 

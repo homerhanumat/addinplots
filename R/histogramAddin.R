@@ -1,7 +1,7 @@
-#' Make a \code{lattice} density plot.
+#' Make a \code{lattice} Histogram.
 #'
-#' Interactively make a \code{lattice} denisty plot. The resulting
-#' code will be emitted as a call to \code{lattice::densityplot}.
+#' Interactively make a \code{lattice} histogram. The resulting
+#' code will be emitted as a call to \code{lattice::histogram}.
 #' function.
 #'
 #' Here's how you use it:
@@ -14,7 +14,7 @@
 #' the plot  will be be placed at the cursor position.
 #'
 #' @export
-densityplotAddin <- function() {
+histogramAddin <- function() {
   
   # utilities: --------------------------------------
   
@@ -54,161 +54,161 @@ densityplotAddin <- function() {
       suggestion <- Hmisc::capitalize(varName)
     }
   }
-
+  
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
-
+  
   # Set the default data to use based on the selection.
   text <- context$selection[[1]]$text
   defaultData <- text
-
+  
   # UI for gadget ---------------------------------
   ui <- miniPage(
-    miniTitleBar("Densityplot Code-Helper"),
+    miniTitleBar("Histogram Code-Helper"),
     miniContentPanel(
-    sidebarLayout(
-      sidebarPanel(width = 3,
-        textInput("data", "Data", value = defaultData),
-        helpText("Choose the numerical variable."),
-        uiOutput("xVar")
-      ),
-      mainPanel(width = 9,
-        tabsetPanel(id = "buildertabs",
-          tabPanel(
-            title = "Group",
-            uiOutput("pending1"),
-        fluidRow(
-          column(width = 4,
-                 h3("The Plot"),
-                 plotOutput("plot1")),
-          column(width = 5,
-                 h3("The Code"),
-                 br(),
-                 verbatimTextOutput("code1"))
-        )
-        ,
-        fluidRow(
-          column(width = 4, uiOutput("group")),
-          column(width = 5, uiOutput("keypos"))
-        )
-        ,
-        fluidRow(
-          column(width = 3, uiOutput("keytitle")),
-          column(width = 3, uiOutput("keytitlesize")),
-          column(width = 3, uiOutput("keycolumns"))
-        )
-          ), #end tabPanel "Group"
-        tabPanel(
-          title = "Facet",
-          uiOutput("pending2"),
-          fluidRow(
-            column(width = 4,
-                   h3("The Plot"),
-                   plotOutput("plot2")),
-            column(width = 5,
-                   h3("The Code"),
-                   br(),
-                   verbatimTextOutput("code2"))
-          )
-          ,
-          fluidRow(
-            column(width = 4, uiOutput("facet1")),
-            column(width = 4, uiOutput("facet2"))
-          )
-          ,
-          fluidRow(
-            column(width = 2, uiOutput("f1name")),
-            column(width = 2, uiOutput("f1number")),
-            column(width = 2, uiOutput("f1overlap"))
-          )
-          ,
-          fluidRow(
-            column(width = 2, uiOutput("f2name")),
-            column(width = 2, uiOutput("f2number")),
-            column(width = 2, uiOutput("f2overlap"))
-          )
-          ,
-          fluidRow(
-            column(width = 3, uiOutput("layrows")),
-            column(width = 3, uiOutput("laycols")),
-            column(width = 3, uiOutput("layvarnames"))
-          )
-        )  # end tabPanel "Facet"
-        ,
-        tabPanel(
-          title = "Other",
-          uiOutput("pending3"),
-          fluidRow(
-            column(width = 4,
-                   h3("The Plot"),
-                   plotOutput("plot3")),
-            column(width = 5,
-                   h3("The Code"),
-                   br(),
-                   verbatimTextOutput("code3"))
-          )
-          ,
-          fluidRow(
-            column(width = 3, uiOutput("points")),
-            column(width = 3, uiOutput("adjust")),
-            column(width = 3, uiOutput("kernel"))
-          )
-          ,
-          fluidRow(
-            column(width = 3, uiOutput("from")),
-            column(width = 3, uiOutput("to")),
-            column(width = 3, uiOutput("bw"))
-          )
-          ,
-          fluidRow(
-            column(width = 7, uiOutput("main")),
-            column(width = 2, uiOutput("mainsize"))
-            )
-          ,
-          fluidRow(
-            column(width = 7, uiOutput("sub")),
-            column(width = 2, uiOutput("subsize"))
-          )
-          ,
-          fluidRow(
-            column(width = 7, uiOutput("xlab")),
-            column(width = 2, uiOutput("xlabsize"))
-          )
-        ) # end tabPanel "Other"
-        ) # end tabsetPanel
-      ) # end MainPanel
-    ) # end sidebarLayout
+      sidebarLayout(
+        sidebarPanel(width = 3,
+                     textInput("data", "Data", value = defaultData),
+                     helpText("Choose the numerical variable."),
+                     uiOutput("xVar")
+        ),
+        mainPanel(width = 9,
+                  tabsetPanel(id = "buildertabs",
+                              tabPanel(
+                                title = "Group",
+                                uiOutput("pending1"),
+                                fluidRow(
+                                  column(width = 4,
+                                         h3("The Plot"),
+                                         plotOutput("plot1")),
+                                  column(width = 5,
+                                         h3("The Code"),
+                                         br(),
+                                         verbatimTextOutput("code1"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 4, uiOutput("group")),
+                                  column(width = 5, uiOutput("keypos"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 3, uiOutput("keytitle")),
+                                  column(width = 3, uiOutput("keytitlesize")),
+                                  column(width = 3, uiOutput("keycolumns"))
+                                )
+                              ), #end tabPanel "Group"
+                              tabPanel(
+                                title = "Facet",
+                                uiOutput("pending2"),
+                                fluidRow(
+                                  column(width = 4,
+                                         h3("The Plot"),
+                                         plotOutput("plot2")),
+                                  column(width = 5,
+                                         h3("The Code"),
+                                         br(),
+                                         verbatimTextOutput("code2"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 4, uiOutput("facet1")),
+                                  column(width = 4, uiOutput("facet2"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 2, uiOutput("f1name")),
+                                  column(width = 2, uiOutput("f1number")),
+                                  column(width = 2, uiOutput("f1overlap"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 2, uiOutput("f2name")),
+                                  column(width = 2, uiOutput("f2number")),
+                                  column(width = 2, uiOutput("f2overlap"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 3, uiOutput("layrows")),
+                                  column(width = 3, uiOutput("laycols")),
+                                  column(width = 3, uiOutput("layvarnames"))
+                                )
+                              )  # end tabPanel "Facet"
+                              ,
+                              tabPanel(
+                                title = "Other",
+                                uiOutput("pending3"),
+                                fluidRow(
+                                  column(width = 4,
+                                         h3("The Plot"),
+                                         plotOutput("plot3")),
+                                  column(width = 5,
+                                         h3("The Code"),
+                                         br(),
+                                         verbatimTextOutput("code3"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 3, uiOutput("breakchoice")),
+                                  column(width = 2, uiOutput("numberbreaks")),
+                                  column(width = 4, uiOutput("custom"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 3, uiOutput("type")),
+                                  column(width = 3, uiOutput("adddensity")),
+                                  column(width = 3, uiOutput("bw"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 7, uiOutput("main")),
+                                  column(width = 2, uiOutput("mainsize"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 7, uiOutput("sub")),
+                                  column(width = 2, uiOutput("subsize"))
+                                )
+                                ,
+                                fluidRow(
+                                  column(width = 7, uiOutput("xlab")),
+                                  column(width = 2, uiOutput("xlabsize"))
+                                )
+                              ) # end tabPanel "Other"
+                  ) # end tabsetPanel
+        ) # end MainPanel
+      ) # end sidebarLayout
     ) # end miniContentPanel
   ) # end miniPage
-
-
+  
+  
   # Server code for the gadget.
   server <- function(input, output, session) {
-
-## Reactive Values ----------------
-###########################
+    
+    ## Reactive Values ----------------
+    ###########################
     
     rv <- reactiveValues(
       shingle1 = FALSE,
       shingle2 = FALSE,
       code = NULL
     )
-
-## Reactive functions -------------------
-################################
+    
+    ## Reactive functions -------------------
+    ################################
     
     # fetch the data frame
     reactiveData <- reactive({
       dataString <- input$data
       if (!nzchar(dataString)) {
         return(errorMessage("data", "No dataset available."))
-        }
-
+      }
+      
       if (!exists(dataString, envir = .GlobalEnv)) {
         return(errorMessage("data", paste("No dataset named '",
                                           dataString, "' available.")))
       }
-
+      
       data <- get(dataString, envir = .GlobalEnv)
       data
     })
@@ -243,7 +243,7 @@ densityplotAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"densityplot( ~ ",xvar)
+      code <- paste0(code,"histogram( ~ ",xvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }
@@ -269,7 +269,7 @@ densityplotAddin <- function() {
       if (!is.null(input$layvarnames) && input$layvarnames) {
         code <- paste0(code, ",\n\tstrip = strip.custom(strip.names = c(TRUE, TRUE))")
       }
-     
+      
       # groups argument 
       if ( entered(input$group) ) {
         code <- paste0(code,",\n\tgroups = ",input$group)
@@ -279,6 +279,44 @@ densityplotAddin <- function() {
                        ",\n\t\tcex.title = ", input$keytitlesize,
                        ",\n\t\tcolumns = ", input$keycolumns,
                        ")")
+      }
+      
+      # histogram breaks
+      if (entered(input$breakchoice)) {
+        if (input$breakchoice == "numberbreaks"  && !is.null(input$numberbreaks)) {
+          code <- paste0(code, ", \n\tnint = ",input$numberbreaks)
+        }
+        if (input$breakchoice == "centerint") {
+          data <- reactiveData()
+          var <- get(xvar, envir = as.environment(data))
+          minVal <- round(min(var, na.rm = T)) - 1/2
+          maxVal <- round(max(var, na.rm = T)) + 1/2
+          code <- paste0(code, ", \n\tbreaks = seq(from = ",minVal,", to = ",
+                         maxVal,", by = 1)")
+        }
+        if (input$breakchoice == "custom" && entered(input$custom)) {
+          breaks <- as.numeric(unlist(strsplit(input$custom,split=",")))
+          validate(
+            need(length(breaks) > 1, "Enter more breakpoints!"),
+            need(!any(is.na(breaks)), "All breakpoints must be numbers!"),
+            need(all(breaks == cummax(breaks)), "Breakpoints must increase!")
+          )
+          code <- paste0(code, ", \n\tbreaks = c(",input$custom,")")
+        }
+      }
+      
+      # histogram type (or add densityplot)
+      wantsDensityPlot <- !is.null(input$adddensity) && input$adddensity
+      if (!wantsDensityPlot && entered(input$type)) {
+        if (input$type == "percent" || input$type == "density") {
+          code <- paste0(code, ",\n\ttype = \"",input$type, "\"")
+        }
+      }
+      
+      if ( wantsDensityPlot ) {
+        code <- paste0(code, ",\n\tpanel=function(x, ...) {",
+                       "\n\t\tpanel.histogram(x, ...)",
+                       "\n\t\tpanel.densityplot(x, ...)}")
       }
       
       # main, ,sub, xlab
@@ -316,46 +354,11 @@ densityplotAddin <- function() {
                        ")")
       }
       
-      # points, adjust bandwidth (all on one line)
-      arg_prev <- FALSE
-      if (!is.null(input$points) && !input$points) {
-        code <- paste0(code,",\n\tplot.points = FALSE")
-        arg_prev <- TRUE
-      }
-      
-      if (!is.null(input$adjust) && input$adjust != 1) {
-        if (arg_prev) {
-          code <- paste0(code,", adjust = ",input$adjust)
-        } else {
-          code <- paste0(code,",\n\tadjust = ", input$adjust)
-        }
-      }
-      
-      # kernel
-      if (!is.null(input$kernel) && input$kernel != "gaussian") {
-          code <- paste0(code,",\n\tkernel = \"",input$kernel,"\"")
-      }
-      
-      # from, to (on one line)
-      arg_prev <- FALSE
-      if (entered(input$from)) {
-        code <- paste0(code,",\n\tfrom = ",as.numeric(input$from))
-        arg_prev <- TRUE
-      }
-      
-      if (entered(input$to)) {
-        if (arg_prev) {
-          code <- paste0(code,", to = ",as.numeric(input$to))
-        } else {
-          code <- paste0(code,",\n\tto = ",as.numeric(input$to))
-        }
-      }
-      
       # theme argument
       wantBW <- !is.null(input$bw) && input$bw
       if ( wantBW ) {
         code <- paste0(code, 
-            ",\n\tpar.settings = canonical.theme(color=FALSE)")
+                       ",\n\tpar.settings = canonical.theme(color=FALSE)")
       }
       
       # add closing paren:
@@ -389,7 +392,6 @@ densityplotAddin <- function() {
     #   if (!reactiveVarCheck()) {
     #     return(NULL)
     #   } else {
-    #     #command <- reactiveCode()
     #     command <- isolate(rv$code)
     #     eval(parse(text = command))
     #   }
@@ -407,7 +409,7 @@ densityplotAddin <- function() {
         # if we get this far, the facetting variable is a factor
         if (entered(varName)) {
           var <- get(varName, envir = as.environment(reactiveData()))
-            return(length(levels(var)))
+          return(length(levels(var)))
         } else {
           return(NULL)
         }
@@ -443,9 +445,9 @@ densityplotAddin <- function() {
       
     })
     
-
-## Primary Variables --------------------
-############################
+    
+    ## Primary Variables --------------------
+    ############################
     
     output$xVar <- renderUI({
       data <- reactiveData()
@@ -454,9 +456,9 @@ densityplotAddin <- function() {
                   selected = "")
     })
     
-
-## For groups tab -------------------------
-#############################
+    
+    ## For groups tab -------------------------
+    #############################
     
     output$pending1 <- renderUI({
       data <- reactiveData()
@@ -465,7 +467,7 @@ densityplotAddin <- function() {
     })
     
     output$plot1 <- renderPlot({
-        makeplot()
+      makeplot()
     })
     
     output$code1 <- renderText({
@@ -543,10 +545,10 @@ densityplotAddin <- function() {
                    min = 1, max = length(levels(input$group)), value = 1, step = 1)
     })
     
-
-
-## for facets tab --------------------
-###############################
+    
+    
+    ## for facets tab --------------------
+    ###############################
     
     output$pending2 <- renderUI({
       data <- reactiveData()
@@ -649,7 +651,7 @@ densityplotAddin <- function() {
       }
       rv$shingle1 <- TRUE
       numericInput(inputId = "f1number", label = "How Many?",
-                min = 2, value = 2)
+                   min = 2, value = 2)
     })
     
     output$f1overlap <- renderUI({
@@ -751,9 +753,9 @@ densityplotAddin <- function() {
                     label = "Show Facet-Variable Names")
     })
     
-
-## for "other" tab -------------------
-##############################
+    
+    ## for "other" tab -------------------
+    ##############################
     
     output$pending3 <- renderUI({
       data <- reactiveData()
@@ -767,6 +769,63 @@ densityplotAddin <- function() {
     
     output$code3 <- renderText({
       rv$code
+    })
+    
+    output$breakchoice <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      selectInput(inputId = "breakchoice", label = "Rectangle Breaks",
+                choices = c("Default" = "default",
+                            "Number" = "numberbreaks",
+                            "Integer" = "centerint",
+                            "Custom" = "custom"
+                            ))
+    })
+    
+    output$numberbreaks <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if (!is.null(input$breakchoice) && input$breakchoice != "numberbreaks") {
+        return(NULL)
+      }
+      numericInput(inputId = "numberbreaks", label = "Number of Rectangles",
+                   min = 1, value = 10)
+    })
+    
+    output$custom <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if (!is.null(input$breakchoice) && input$breakchoice != "custom") {
+        return(NULL)
+      }
+      textInput(inputId = "custom", label = "Breakpoints (comma-separated)")
+    })
+    
+    output$type <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      selectInput(inputId = "type", label = "Histogram Type",
+                  choices = c("Count" = "count",
+                              "Percentage" = "percent",
+                              "Density" = "density"))
+    })
+    
+    output$adddensity <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "adddensity", label = "Add a density plot")
+    })
+    
+    output$bw <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
     })
     
     output$main <- renderUI({
@@ -814,74 +873,27 @@ densityplotAddin <- function() {
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
-    output$points <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      checkboxInput(inputId = "points", label = "Plot Points", value = TRUE,
-                    width = "100px")
-    })
     
-    output$adjust <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      numericInput(inputId = "adjust", label = "Adjust Bandwidth", value = 1,
-                    min = 0.1, width = "100px", step = 0.1)
-    })
+    ## Finish Up ----------------------
+    #######################
     
-    output$kernel <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      selectInput(inputId = "kernel", label = "Kernal-Type",
-                  choices = c("gaussian", "rectangular", "triangular", 
-                              "epanechnikov", "biweight", "cosine","optcosine"),
-                   selected = "gaussian")
-    })
-    
-    output$from <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "from", label = "Start curve at")
-    })
-    
-    output$to <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "to", label = "End curve at")
-    })
-    
-    output$bw <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
-    })
-    
-
-## Finish Up ----------------------
-#######################
-
     # Listen for Done.
     observeEvent(input$done, {
       
       # Get code to user:
       if (reactiveVarCheck()) {
-          code <- rv$code
-          rstudioapi::insertText(text = code)
+        code <- rv$code
+        rstudioapi::insertText(text = code)
       } else {
-         return(NULL)
-       }
-
+        return(NULL)
+      }
+      
       invisible(stopApp())
     })
   }
-
+  
   # Use a browser as a viewer.
   viewer <- browserViewer()
   runGadget(ui, server, viewer = viewer)
-
+  
 }

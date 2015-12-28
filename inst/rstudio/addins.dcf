@@ -1,9 +1,14 @@
-Name: Make a Cloud Plot
+Name: Lattice Cloud Plot
 Description: Interactively make a cloud plot.
 Binding: cloudplotAddin
 Interactive: true
 
-Name: Make a Density Plot
-Description: Interactively make a denisty plot.
+Name: Lattice Density Plot
+Description: Interactively make a density plot.
 Binding: densityplotAddin
+Interactive: true
+
+Name: Lattice Histogram
+Description: Interactively make a histogram.
+Binding: histogramAddin
 Interactive: true

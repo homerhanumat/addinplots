@@ -2,6 +2,7 @@
 
 export(cloudplotAddin)
 export(densityplotAddin)
+export(histogramAddin)
 import(lattice)
 import(miniUI)
 import(rstudioapi)
