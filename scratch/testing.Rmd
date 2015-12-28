@@ -5,20 +5,24 @@ date: "December 20, 2015"
 output: html_document
 ---
 
+## Section One
+
 ```{r include = FALSE}
 library(lattice)
 library(tigerstats)
 ```
 
-```{r}
-Height <- equal.count(m111survey$height, number = 3, overlap = 0.1)
-gpa <- equal.count(m111survey$GPA, number = 3, overlap = 0.1)
-densityplot(~fastest|Height*gpa,data = m111survey)
-```
+## Section Two
 
 ```{r}
 m111survey
 ```
+
+### Subsection A
+
+stuff
+
+### Subsection B
 
 
 

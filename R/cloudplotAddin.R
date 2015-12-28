@@ -8,10 +8,10 @@
 #'
 #' 1. Highlight a symbol naming a \code{data.frame} in your R session,
 #'    e.g. \code{mtcars},
-#' 2. Execute this addin, to interactively subset it.
+#' 2. Execute this addin and interactively build the plot..
 #'
-#' When you're done, the code performing this operation will be emitted
-#' at the cursor position.
+#' When you're happy with the plot, press Done.  The code performing for
+#' the plot  will be be placed at the cursor position.
 #'
 #' @export
 cloudplotAddin <- function() {
@@ -278,7 +278,7 @@ cloudplotAddin <- function() {
       code <- paste0(code, ",\n\tdata = ",input$data)
       
       # layout information
-      if (entered(input$facet1) && !is.null(input$layrows) && nzchar(input$laycols)) {
+      if (entered(input$facet1) && !is.null(input$layrows) && !is.null(input$laycols)) {
         code <- paste0(code, ",\n\tlayout = c(",input$laycols,",",input$layrows,")")
       }
       
@@ -424,9 +424,9 @@ cloudplotAddin <- function() {
       f2 <- input$facet2
       
       if (entered(f1) && !entered(f2)) {
-        # if (rv$shingle1 && !entered(input$f1name)) {
-        #   return(list(rows=1,cols=1))
-        # }
+        if (rv$shingle1 && !entered(input$f1name)) {
+          return(NULL)
+        }
         var1 <- ifelse(rv$shingle1, input$f1name, f1)
         rows <- getNumberLevels(var1)
         cols <- 1
@@ -434,6 +434,9 @@ cloudplotAddin <- function() {
         return(res)
       }
       if (entered(f1) && entered(f2)) {
+        if (rv$shingle2 && !entered(input$f2name)) {
+          return(NULL)
+        }
         var1 <- ifelse(rv$shingle1, input$f1name, f1)
         var2 <- ifelse(rv$shingle2, input$f2name, f2)
         rows <- getNumberLevels(var1)
@@ -441,8 +444,8 @@ cloudplotAddin <- function() {
         res <- list(rows = rows, cols = cols)
         return(res)
       }
-      # safety vakues:
-      res <- list(rows = 1, cols = 1)
+      # safety values
+      res <- NULL
       return(res)
       
     })
@@ -747,21 +750,20 @@ cloudplotAddin <- function() {
     })
     
     output$laycols <- renderUI({
+      input$f1name
+      input$f2name
+      input$facet1
+      input$facet2
       if (!entered(input$facet1)) {
         return(NULL)
       }
       layout <- reactiveLayout()
+      if (is.null(layout)) {
+        return(NULL)
+      }
       cols <- layout$cols
       numericInput(inputId = "laycols", label = "Columns in Layout",
                    min = 1, value = cols)
-    })
-    
-    output$layvarnames <- renderUI({
-      if (!entered(input$facet1)) {
-        return(NULL)
-      }
-      checkboxInput(inputId = "layvarnames", 
-                    label = "Show Facet-Variable Names")
     })
     
 
