@@ -281,19 +281,35 @@ densityplotAddin <- function() {
       }
       
       # main, ,sub, xlab
-      if (entered(input$main)) {
+      if (entered(input$main) && input$mainsize == 1) {
+        code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
+      }
+      
+      if (entered(input$main) && input$mainsize != 1) {
         code <- paste0(code, ",\n\tmain = list(label=\"",input$main, "\"",
                        ",\n\t\tcex = ",input$mainsize,
                        ")")
       }
       
-      if (entered(input$sub)) {
+      if (entered(input$sub) && input$subsize == 1) {
+        code <- paste0(code, ",\n\tsub = \"",input$sub,"\"")
+      }
+      
+      if (entered(input$sub) && input$subsize != 1) {
         code <- paste0(code, ",\n\tsub = list(label=\"",input$sub, "\"",
                        ",\n\t\tcex = ",input$subsize,
                        ")")
+      } 
+      
+      if (entered(input$xlab) && input$xlabsize == 1) {
+        code <- paste0(code, ",\n\txlab = \"",input$xlab,"\"")
       }
       
-      if (entered(input$xlab)) {
+      if (!entered(input$xlab) && !is.null(input$xlabsize) && input$xlabsize !=1) {
+        code <- paste0(code, ",\n\txlab = list(cex = ",input$xlabsize,")")
+      }
+      
+      if (entered(input$xlab) && input$xlabsize != 1) {
         code <- paste0(code, ",\n\txlab = list(label=\"",input$xlab, "\"",
                        ",\n\t\tcex = ",input$xlabsize,
                        ")")
@@ -747,7 +763,7 @@ densityplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "subsize","Graph Sub-title Size",
+      numericInput(inputId = "subsize","Graph Sub-size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     

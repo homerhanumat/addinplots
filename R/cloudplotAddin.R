@@ -179,8 +179,9 @@ cloudplotAddin <- function() {
           )
           ,
           fluidRow(
-            column(width = 2, uiOutput("pch")),
-            column(width = 2, uiOutput("bw"))
+            column(width = 3, uiOutput("pch")),
+            column(width = 3, uiOutput("bw")),
+            column(width=3, uiOutput("zoom"))
           )
         )
         ) # end tabsetPanel
@@ -259,7 +260,7 @@ cloudplotAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"cloud(",zvar," ~",xvar," * ",yvar)
+      code <- paste0(code,"cloud(",zvar," ~ ",xvar," * ",yvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }
@@ -302,35 +303,67 @@ cloudplotAddin <- function() {
       }
       
       # main, xlab, ylab. zlab
-      if (entered(input$main)) {
+      if (entered(input$main) && input$mainsize == 1) {
+        code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
+      }
+      
+      if (entered(input$main) && input$mainsize != 1) {
         code <- paste0(code, ",\n\tmain = list(label=\"",input$main, "\"",
                        ",\n\t\tcex = ",input$mainsize,
                        ")")
       }
       
-      if (entered(input$sub)) {
+      if (entered(input$sub) && input$subsize == 1) {
+        code <- paste0(code, ",\n\tsub = \"",input$sub,"\"")
+      }
+      
+      if (entered(input$sub) && input$subsize != 1) {
         code <- paste0(code, ",\n\tsub = list(label=\"",input$sub, "\"",
                        ",\n\t\tcex = ",input$subsize,
                        ")")
+      } 
+      
+      if (entered(input$xlab) && input$xlabsize == 1) {
+        code <- paste0(code, ",\n\txlab = \"",input$xlab,"\"")
       }
       
-      if (entered(input$xlab)) {
+      if (!entered(input$xlab) && !is.null(input$xlabsize) && input$xlabsize !=1) {
+        code <- paste0(code, ",\n\txlab = list(cex = ",input$xlabsize,")")
+      }
+      
+      if (entered(input$xlab) && input$xlabsize != 1) {
         code <- paste0(code, ",\n\txlab = list(label=\"",input$xlab, "\"",
                        ",\n\t\tcex = ",input$xlabsize,
                        ")")
+      } 
+      
+      if (entered(input$ylab) && input$ylabsize == 1) {
+        code <- paste0(code, ",\n\tylab = \"",input$ylab,"\"")
       }
       
-      if (entered(input$ylab)) {
+      if (!entered(input$ylab) && !is.null(input$ylabsize) && input$ylabsize !=1) {
+        code <- paste0(code, ",\n\tylab = list(cex = ",input$ylabsize,")")
+      }
+      
+      if (entered(input$ylab) && input$ylabsize != 1) {
         code <- paste0(code, ",\n\tylab = list(label=\"",input$ylab, "\"",
                        ",\n\t\tcex = ",input$ylabsize,
                        ")")
+      } 
+      
+      if (entered(input$zlab) && input$zlabsize == 1) {
+        code <- paste0(code, ",\n\tzlab = \"",input$zlab,"\"")
       }
       
-      if (entered(input$zlab)) {
+      if (!entered(input$zlab) && !is.null(input$zlabsize) && input$zlabsize !=1) {
+        code <- paste0(code, ",\n\tzlab = list(cex = ",input$zlabsize,")")
+      }
+      
+      if (entered(input$zlab) && input$zlabsize != 1) {
         code <- paste0(code, ",\n\tzlab = list(label=\"",input$zlab, "\"",
                        ",\n\t\tcex = ",input$zlabsize,
                        ")")
-      }
+      } 
       
       # pch argument
       if (!is.null(input$pch)) {
@@ -342,6 +375,12 @@ cloudplotAddin <- function() {
       if ( wantBW ) {
         code <- paste0(code, 
             ",\n\tpar.settings = canonical.theme(color=FALSE)")
+      }
+      
+      # zoom argument
+      wantZoom <- !is.null(input$zoom) && input$zoom != 1
+      if ( wantZoom ) {
+        code <- paste0(code, ",\n\tzoom = ",input$zoom)
       }
       
       # add closing paren:
@@ -385,6 +424,9 @@ cloudplotAddin <- function() {
       f2 <- input$facet2
       
       if (entered(f1) && !entered(f2)) {
+        # if (rv$shingle1 && !entered(input$f1name)) {
+        #   return(list(rows=1,cols=1))
+        # }
         var1 <- ifelse(rv$shingle1, input$f1name, f1)
         rows <- getNumberLevels(var1)
         cols <- 1
@@ -766,7 +808,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "subsize","Graph Sub-title Size",
+      numericInput(inputId = "subsize","Graph Sub-size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -828,6 +870,14 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
+    })
+    
+    output$zoom <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "zoom","Zoom In/Out", 
+                   min = 0, step = 0.1, value = 1, width = "100px")
     })
 
 ## Finish Up ----------------

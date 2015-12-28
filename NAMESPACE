@@ -2,8 +2,8 @@
 
 export(cloudplotAddin)
 export(densityplotAddin)
-import(Hmisc)
 import(lattice)
 import(miniUI)
 import(rstudioapi)
 import(shiny)
+importFrom(Hmisc,capitalize)
