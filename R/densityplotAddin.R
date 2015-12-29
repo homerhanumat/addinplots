@@ -64,7 +64,7 @@ densityplotAddin <- function() {
 
   # UI for gadget ---------------------------------
   ui <- miniPage(
-    miniTitleBar("Densityplot Code-Helper"),
+    gadgetTitleBar("Densityplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
       sidebarPanel(width = 3,

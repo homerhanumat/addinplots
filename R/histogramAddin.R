@@ -64,7 +64,7 @@ histogramAddin <- function() {
   
   # UI for gadget ---------------------------------
   ui <- miniPage(
-    miniTitleBar("Histogram Code-Helper"),
+    gadgetTitleBar("Histogram Code-Helper"),
     miniContentPanel(
       sidebarLayout(
         sidebarPanel(width = 3,
