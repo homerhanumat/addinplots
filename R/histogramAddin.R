@@ -16,45 +16,6 @@
 #' @export
 histogramAddin <- function() {
   
-  # utilities: --------------------------------------
-  
-  find_numeric_vars <- function(data) {
-    isNum <- function(name, data) {
-      is.numeric(get(name, envir = as.environment(data)))
-    }
-    numNames <- sapply(names(data), isNum, data = data)
-    names(data)[numNames]
-  }
-  
-  find_factor_vars <- function(data) {
-    isFac <- function(name, data) {
-      is.factor(get(name, envir = as.environment(data)))
-    }
-    facNames <- sapply(names(data), isFac, data = data)
-    names(data)[facNames]
-  }
-  
-  find_facnum_vars <- function(data) {
-    isFacNum <- function(name, data) {
-      var <- get(name, envir = as.environment(data))
-      is.factor(var) || is.numeric(var)
-    }
-    facNumNames <- sapply(names(data), isFacNum, data = data)
-    names(data)[facNumNames]
-  }
-  
-  entered <- function(string) {
-    !is.null(string) && nzchar(string)
-  }
-  
-  suggestedName <- function(varName) {
-    if (tolower(varName) != varName) {
-      suggestion <- tolower(varName)
-    } else {
-      suggestion <- Hmisc::capitalize(varName)
-    }
-  }
-  
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
   
@@ -67,18 +28,18 @@ histogramAddin <- function() {
     gadgetTitleBar("Histogram Code-Helper"),
     miniContentPanel(
       sidebarLayout(
-        sidebarPanel(width = 3,
+        sidebarPanel(width = 2,
                      textInput("data", "Data", value = defaultData),
                      helpText("Choose the numerical variable."),
                      uiOutput("xVar")
         ),
-        mainPanel(width = 9,
+        mainPanel(width = 10,
                   tabsetPanel(id = "buildertabs",
                               tabPanel(
                                 title = "Group",
                                 uiOutput("pending1"),
                                 fluidRow(
-                                  column(width = 4,
+                                  column(width = 5,
                                          h3("The Plot"),
                                          plotOutput("plot1")),
                                   column(width = 5,
@@ -102,7 +63,7 @@ histogramAddin <- function() {
                                 title = "Facet",
                                 uiOutput("pending2"),
                                 fluidRow(
-                                  column(width = 4,
+                                  column(width = 5,
                                          h3("The Plot"),
                                          plotOutput("plot2")),
                                   column(width = 5,
@@ -139,7 +100,7 @@ histogramAddin <- function() {
                                 title = "Other",
                                 uiOutput("pending3"),
                                 fluidRow(
-                                  column(width = 4,
+                                  column(width = 5,
                                          h3("The Plot"),
                                          plotOutput("plot3")),
                                   column(width = 5,
@@ -161,17 +122,17 @@ histogramAddin <- function() {
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("main")),
+                                  column(width = 5, uiOutput("main")),
                                   column(width = 2, uiOutput("mainsize"))
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("sub")),
+                                  column(width = 5, uiOutput("sub")),
                                   column(width = 2, uiOutput("subsize"))
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("xlab")),
+                                  column(width = 5, uiOutput("xlab")),
                                   column(width = 2, uiOutput("xlabsize"))
                                 )
                               ) # end tabPanel "Other"
@@ -283,7 +244,7 @@ histogramAddin <- function() {
       
       # histogram breaks
       if (entered(input$breakchoice)) {
-        if (input$breakchoice == "numberbreaks"  && !is.null(input$numberbreaks)) {
+        if (input$breakchoice == "numberbreaks"  && exists_as_numeric(input$numberbreaks)) {
           code <- paste0(code, ", \n\tnint = ",input$numberbreaks)
         }
         if (input$breakchoice == "centerint") {
@@ -320,39 +281,39 @@ histogramAddin <- function() {
       }
       
       # main, ,sub, xlab
-      if (entered(input$main) && input$mainsize == 1) {
+      if (entered(input$main) && exists_as_numeric(input$mainsize) &&  input$mainsize == 1) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
       }
       
-      if (entered(input$main) && input$mainsize != 1) {
+      if (entered(input$main) && exists_as_numeric(input$mainsize) && input$mainsize != 1) {
         code <- paste0(code, ",\n\tmain = list(label=\"",input$main, "\"",
                        ",\n\t\tcex = ",input$mainsize,
                        ")")
       }
       
-      if (entered(input$sub) && input$subsize == 1) {
+      if (entered(input$sub) && exists_as_numeric(input$subsize) && input$subsize == 1) {
         code <- paste0(code, ",\n\tsub = \"",input$sub,"\"")
       }
       
-      if (entered(input$sub) && input$subsize != 1) {
+      if (entered(input$sub) && exists_as_numeric(input$subsize) && input$subsize != 1) {
         code <- paste0(code, ",\n\tsub = list(label=\"",input$sub, "\"",
                        ",\n\t\tcex = ",input$subsize,
                        ")")
       } 
       
-      if (entered(input$xlab) && input$xlabsize == 1) {
+      if (entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize == 1) {
         code <- paste0(code, ",\n\txlab = \"",input$xlab,"\"")
       }
       
-      if (!entered(input$xlab) && !is.null(input$xlabsize) && input$xlabsize !=1) {
+      if (!entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize !=1) {
         code <- paste0(code, ",\n\txlab = list(cex = ",input$xlabsize,")")
       }
       
-      if (entered(input$xlab) && input$xlabsize != 1) {
+      if (entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize != 1) {
         code <- paste0(code, ",\n\txlab = list(label=\"",input$xlab, "\"",
                        ",\n\t\tcex = ",input$xlabsize,
                        ")")
-      }
+      } 
       
       # theme argument
       wantBW <- !is.null(input$bw) && input$bw

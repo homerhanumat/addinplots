@@ -1,7 +1,7 @@
-#' Make a \code{lattice} density plot.
+#' Make a \code{lattice} scatter plot.
 #'
-#' Interactively make a \code{lattice} denisty plot. The resulting
-#' code will be emitted as a call to \code{lattice::densityplot}.
+#' Interactively make a \code{lattice} scatter plot. The resulting
+#' code will be emitted as a call to \code{lattice::xyplot}.
 #' function.
 #'
 #' Here's how you use it:
@@ -14,7 +14,7 @@
 #' the plot  will be be placed at the cursor position.
 #'
 #' @export
-densityplotAddin <- function() {
+xyplotAddin <- function() {
 
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
@@ -23,21 +23,22 @@ densityplotAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
 
-  # UI for gadget ---------------------------------
+  # Generate UI for the gadget -------------------
   ui <- miniPage(
-    gadgetTitleBar("Densityplot Code-Helper"),
+    gadgetTitleBar("xyplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
       sidebarPanel(width = 2,
         textInput("data", "Data", value = defaultData),
-        helpText("Choose the numerical variable."),
-        uiOutput("xVar")
+        helpText("Choose your variables."),
+        uiOutput("xVar"),
+        uiOutput("yVar")
       ),
       mainPanel(width = 10,
-        tabsetPanel(id = "buildertabs",
+        tabsetPanel(
           tabPanel(
             title = "Group",
-            uiOutput("pending1"),
+        uiOutput("pending1"),
         fluidRow(
           column(width = 5,
                  h3("The Plot"),
@@ -49,7 +50,7 @@ densityplotAddin <- function() {
         )
         ,
         fluidRow(
-          column(width = 4, uiOutput("group")),
+          column(width = 5, uiOutput("group")),
           column(width = 5, uiOutput("keypos"))
         )
         ,
@@ -94,8 +95,7 @@ densityplotAddin <- function() {
             column(width = 3, uiOutput("laycols")),
             column(width = 3, uiOutput("layvarnames"))
           )
-        )  # end tabPanel "Facet"
-        ,
+        ),
         tabPanel(
           title = "Other",
           uiOutput("pending3"),
@@ -110,15 +110,17 @@ densityplotAddin <- function() {
           )
           ,
           fluidRow(
-            column(width = 3, uiOutput("points")),
-            column(width = 3, uiOutput("adjust")),
-            column(width = 3, uiOutput("kernel"))
+            column(width = 3, uiOutput("smoother")),
+            column(width = 3, uiOutput("pch")),
+            column(width = 3, uiOutput("bw"))
           )
           ,
           fluidRow(
-            column(width = 3, uiOutput("from")),
-            column(width = 3, uiOutput("to")),
-            column(width = 3, uiOutput("bw"))
+            column(width = 2, uiOutput("lwd")),
+            column(width = 2, uiOutput("lty")),
+            column(width = 2, uiOutput("span")),
+            column(width= 2, uiOutput("degree")),
+            column(width= 2, uiOutput("family"))
           )
           ,
           fluidRow(
@@ -135,7 +137,12 @@ densityplotAddin <- function() {
             column(width = 5, uiOutput("xlab")),
             column(width = 2, uiOutput("xlabsize"))
           )
-        ) # end tabPanel "Other"
+          ,
+          fluidRow(
+            column(width = 5, uiOutput("ylab")),
+            column(width = 2, uiOutput("ylabsize"))
+          )
+        )
         ) # end tabsetPanel
       ) # end MainPanel
     ) # end sidebarLayout
@@ -146,8 +153,8 @@ densityplotAddin <- function() {
   # Server code for the gadget.
   server <- function(input, output, session) {
 
-## Reactive Values ----------------
-###########################
+    ## Reactive Values ----------------
+    ###########################
     
     rv <- reactiveValues(
       shingle1 = FALSE,
@@ -155,7 +162,8 @@ densityplotAddin <- function() {
       code = NULL
     )
 
-## Reactive functions -------------------
+
+## Reactive functions ----------------------
 ################################
     
     # fetch the data frame
@@ -176,12 +184,17 @@ densityplotAddin <- function() {
     
     # check to see if primary variables have been entered
     reactiveVarCheck <- reactive({
-      entered(input$xVar)
+      xvar <- input$xVar
+      yvar <- input$yVar
+      xcheck <- entered(xvar)
+      ycheck <- entered(yvar)
+      return(xcheck && ycheck)
     })
     
     # our code-maker
     observe({
       xvar <- input$xVar
+      yvar <- input$yVar
       if ( !reactiveVarCheck() ) {
         return("No code to show yet!")
       }
@@ -204,7 +217,7 @@ densityplotAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"densityplot( ~ ",xvar)
+      code <- paste0(code,"xyplot(",yvar," ~ ",xvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }
@@ -242,7 +255,71 @@ densityplotAddin <- function() {
                        ")")
       }
       
-      # main, ,sub, xlab
+      # deal with smoothers
+      smoother <- input$smoother
+      span <- input$span
+      degree <- input$degree
+      family <- input$family
+      if (entered(smoother)) {
+        if (smoother == "reg") {
+          code <- paste0(code,',\n\ttype = c("p","r")')
+        }
+        if (smoother == "loess") {
+          code <- paste0(code,',\n\ttype = c("p","smooth")')
+        }
+        if (smoother == "both") {
+          code <- paste0(code,',\n\ttype = c("p","r","smooth")')
+        }
+        # catch on one line:
+        arg_prev <- FALSE
+        if (!is.null(span) && !is.na(span) && span != 0.67) {
+          code <- paste0(code,',\n\tspan = ', span)
+          arg_prev <- TRUE
+        }
+        if (!is.null(degree) && !is.na(degree) && degree != 1) {
+          ifelse(arg_prev,
+                 code <- paste0(code,', degree = ', degree),
+                 code <- paste0(code,',\n\tdegree = ', degree)
+                 )
+          arg_prev <- TRUE
+        }
+        if (!is.null(family) && family != "symmetric") {
+          ifelse(arg_prev,
+                 code <- paste0(code,', family = "gaussian"'),
+                 code <- paste0(code,',\n\tfamily = "gaussian"')
+          )
+        }
+      }
+      
+      # line width, line type, pch (one line)
+      arg_prev <- FALSE
+      lwd <- input$lwd; lty <- input$lty; pch <- input$pch
+      if (exists_as_numeric(lwd) && lwd != 1) {
+        code <- paste0(code,',\n\tlwd = ', lwd)
+        arg_prev <- TRUE
+      }
+      if (exists_as_numeric(lty) && lty != 1 && !input$bw) {
+        ifelse(arg_prev,
+               code <- paste0(code,', lty = ', lty),
+               code <- paste0(code,',\n\tlty = ', lty)
+        )
+        arg_prev <- TRUE
+      }
+      if (exists_as_numeric(pch) && !input$bw) {
+        ifelse(arg_prev,
+               code <- paste0(code,', pch = ', pch),
+               code <- paste0(code,',\n\tpch = ',pch)
+        )
+      }
+      
+      # theme argument
+      wantBW <- !is.null(input$bw) && input$bw
+      if ( wantBW ) {
+        code <- paste0(code, 
+                       ",\n\tpar.settings = canonical.theme(color=FALSE)")
+      }
+      
+      # main, xlab, ylab
       if (entered(input$main) && exists_as_numeric(input$mainsize) &&  input$mainsize == 1) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
       }
@@ -277,55 +354,26 @@ densityplotAddin <- function() {
                        ")")
       } 
       
-      # points, adjust bandwidth (all on one line)
-      arg_prev <- FALSE
-      if (!is.null(input$points) && !input$points) {
-        code <- paste0(code,",\n\tplot.points = FALSE")
-        arg_prev <- TRUE
+      if (entered(input$ylab) && exists_as_numeric(input$ylabsize) &&  input$ylabsize == 1) {
+        code <- paste0(code, ",\n\tylab = \"",input$ylab,"\"")
       }
       
-      if (!is.null(input$adjust) && exists_as_numeric(input$adjust) && input$adjust != 1) {
-        if (arg_prev) {
-          code <- paste0(code,", adjust = ",input$adjust)
-        } else {
-          code <- paste0(code,",\n\tadjust = ", input$adjust)
-        }
+      if (!entered(input$ylab) && exists_as_numeric(input$ylabsize) && input$ylabsize !=1) {
+        code <- paste0(code, ",\n\tylab = list(cex = ",input$ylabsize,")")
       }
       
-      # kernel
-      if (!is.null(input$kernel) && input$kernel != "gaussian") {
-          code <- paste0(code,",\n\tkernel = \"",input$kernel,"\"")
-      }
-      
-      # from, to (on one line)
-      arg_prev <- FALSE
-      if (entered(input$from)) {
-        code <- paste0(code,",\n\tfrom = ",as.numeric(input$from))
-        arg_prev <- TRUE
-      }
-      
-      if (entered(input$to)) {
-        if (arg_prev) {
-          code <- paste0(code,", to = ",as.numeric(input$to))
-        } else {
-          code <- paste0(code,",\n\tto = ",as.numeric(input$to))
-        }
-      }
-      
-      # theme argument
-      wantBW <- !is.null(input$bw) && input$bw
-      if ( wantBW ) {
-        code <- paste0(code, 
-            ",\n\tpar.settings = canonical.theme(color=FALSE)")
-      }
+      if (entered(input$ylab) && exists_as_numeric(input$ylabsize) && input$ylabsize != 1) {
+        code <- paste0(code, ",\n\tylab = list(label=\"",input$ylab, "\"",
+                       ",\n\t\tcex = ",input$ylabsize,
+                       ")")
+      } 
       
       # add closing paren:
       code <- paste0(code,")")
-      #return(code)
       rv$code <- code
     })
     
-    # hair-trigger plotting (code not isolated)
+    # our plot-maker
     makeplot <- reactive({
       data <- reactiveData()
       if (isErrorMessage(data))
@@ -339,23 +387,6 @@ densityplotAddin <- function() {
       }
     })
     
-    # for use with Draw Plot button (code isolated)
-    # makeplot2 <- reactive({
-    #   input$draw # for dependecny on action button
-    #   input$buildertabs # redraw plot when user changes tabs
-    #   data <- reactiveData()
-    #   if (isErrorMessage(data))
-    #     return(NULL)
-    #   
-    #   if (!reactiveVarCheck()) {
-    #     return(NULL)
-    #   } else {
-    #     #command <- reactiveCode()
-    #     command <- isolate(rv$code)
-    #     eval(parse(text = command))
-    #   }
-    # })
-    
     # compute a reasonable layout
     reactiveLayout <- reactive({
       getNumberLevels <- function(varName) {
@@ -368,7 +399,7 @@ densityplotAddin <- function() {
         # if we get this far, the facetting variable is a factor
         if (entered(varName)) {
           var <- get(varName, envir = as.environment(reactiveData()))
-            return(length(levels(var)))
+          return(length(levels(var)))
         } else {
           return(NULL)
         }
@@ -405,7 +436,7 @@ densityplotAddin <- function() {
     })
     
 
-## Primary Variables --------------------
+## Primary Variables -----------------
 ############################
     
     output$xVar <- renderUI({
@@ -415,8 +446,15 @@ densityplotAddin <- function() {
                   selected = "")
     })
     
+    output$yVar <- renderUI({
+      data <- reactiveData()
+      selectInput(inputId = "yVar", label = "y",
+                  choices = c("", find_numeric_vars(data)),
+                  selected = "")
+    })
+    
 
-## For groups tab -------------------------
+## For groups tab ---------------------
 #############################
     
     output$pending1 <- renderUI({
@@ -426,7 +464,7 @@ densityplotAddin <- function() {
     })
     
     output$plot1 <- renderPlot({
-        makeplot()
+      makeplot()
     })
     
     output$code1 <- renderText({
@@ -506,7 +544,7 @@ densityplotAddin <- function() {
     
 
 
-## for facets tab --------------------
+## for facets tab -------------------
 ###############################
     
     output$pending2 <- renderUI({
@@ -533,7 +571,9 @@ densityplotAddin <- function() {
         return(NULL)
       }
       available <- facNumVars
-      available <- setdiff(available, input$xVar)
+      
+      available <- setdiff(available, c(input$xVar, input$yVar, input$zVar))
+      
       if (entered(input$group)) {
         available <- setdiff(available, input$group)
       }
@@ -561,7 +601,7 @@ densityplotAddin <- function() {
         return(NULL)
       }
       available <- facNumVars
-      available <- setdiff(available, input$xVar)
+      available <- setdiff(available, c(input$xVar, input$yVar, input$zVar))
       if (entered(input$group)) {
         available <- setdiff(available, input$group)
       }
@@ -610,7 +650,7 @@ densityplotAddin <- function() {
       }
       rv$shingle1 <- TRUE
       numericInput(inputId = "f1number", label = "How Many?",
-                min = 2, value = 2)
+                   min = 2, value = 2)
     })
     
     output$f1overlap <- renderUI({
@@ -713,7 +753,7 @@ densityplotAddin <- function() {
     })
     
 
-## for "other" tab -------------------
+## for "other" tab -----------------
 ##############################
     
     output$pending3 <- renderUI({
@@ -728,6 +768,93 @@ densityplotAddin <- function() {
     
     output$code3 <- renderText({
       rv$code
+    })
+    
+    output$smoother <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      selectInput(inputId = "smoother","Smoother(s)",
+                  choices = c("No smoother" = "none",
+                              "Regression line" = "reg",
+                              "Loess curve" = "loess",
+                              "Add both!" = "both"))
+    })
+    
+    output$span <- renderUI({
+      if (!reactiveVarCheck() || !(entered(input$smoother))) {
+        return(NULL)
+      }
+      if (entered(input$smoother) && !(input$smoother %in% c("loess","both"))) {
+        return(NULL)
+      }
+      numericInput(inputId = "span", label = "Span",
+                   min = 0, value = 0.67, step = 0.01)
+    })
+    
+    output$degree <- renderUI({
+      if (!reactiveVarCheck() || !(entered(input$smoother))) {
+        return(NULL)
+      }
+      if (entered(input$smoother) && !(input$smoother %in% c("loess","both"))) {
+        return(NULL)
+      }
+      numericInput(inputId = "degree", label = "Degree",
+                   min = 0, max = 2, value = 1, step = 1)
+    })
+    
+    output$family <- renderUI({
+      if (!reactiveVarCheck() || !(entered(input$smoother))) {
+        return(NULL)
+      }
+      if (entered(input$smoother) && !(input$smoother %in% c("loess","both"))) {
+        return(NULL)
+      }
+      radioButtons(inputId = "family", label = "Family", 
+                   choices =c("symmetric", "gaussian"))
+    })
+    
+    output$lwd <- renderUI({
+      if (!reactiveVarCheck() || !(entered(input$smoother))) {
+        return(NULL)
+      }
+      if (entered(input$smoother) && input$smoother == "none") {
+        return(NULL)
+      }
+      numericInput(inputId = "lwd", label = "Line Width",
+                   min = 0.1, value = 1, step = 0.1)
+    })
+    
+    output$lty <- renderUI({
+      if (!reactiveVarCheck() || !(entered(input$smoother))) {
+        return(NULL)
+      }
+      if (entered(input$smoother) && input$smoother == "none") {
+        return(NULL)
+      }
+      if (input$bw) {
+        return(NULL)
+      }
+      numericInput(inputId = "lty", label = "Line Type",
+                   min = 1, max = 6, value = 1, step = 1)
+    })
+    
+    output$pch <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if (!is.null(input$bw) && input$bw) {
+        return(NULL)
+      }
+      numericInput(inputId = "pch","Point Type", 
+                   min = 1, max = 25, step =1, value = 19, width = "100px")
+    })
+    
+    output$bw <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
     })
     
     output$main <- renderUI({
@@ -775,55 +902,22 @@ densityplotAddin <- function() {
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
-    output$points <- renderUI({
+    output$ylab <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      checkboxInput(inputId = "points", label = "Plot Points", value = TRUE,
-                    width = "100px")
+      textInput(inputId = "ylab","y-Label", value = "")
     })
     
-    output$adjust <- renderUI({
+    output$ylabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "adjust", label = "Adjust Bandwidth", value = 1,
-                    min = 0.1, width = "100px", step = 0.1)
+      numericInput(inputId = "ylabsize","y-Label Size",
+                   min = 0, max = 4, value = 1, step = 0.1)
     })
-    
-    output$kernel <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      selectInput(inputId = "kernel", label = "Kernal-Type",
-                  choices = c("gaussian", "rectangular", "triangular", 
-                              "epanechnikov", "biweight", "cosine","optcosine"),
-                   selected = "gaussian")
-    })
-    
-    output$from <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "from", label = "Start curve at")
-    })
-    
-    output$to <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      textInput(inputId = "to", label = "End curve at")
-    })
-    
-    output$bw <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
-    })
-    
 
-## Finish Up ----------------------
+## Finish Up ----------------
 #######################
 
     # Listen for Done.

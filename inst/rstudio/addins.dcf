@@ -17,3 +17,8 @@ Name: Lattice Box-Whisker Plot
 Description: Interactively make a bwplot.
 Binding: bwplotAddin
 Interactive: true
+
+Name: Lattice Scatter Plot
+Description: Interactively make an xyplot.
+Binding: xyplotAddin
+Interactive: true

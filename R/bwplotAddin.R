@@ -16,45 +16,6 @@
 #' @export
 bwplotAddin <- function() {
   
-  # utilities: --------------------------------------
-  
-  find_numeric_vars <- function(data) {
-    isNum <- function(name, data) {
-      is.numeric(get(name, envir = as.environment(data)))
-    }
-    numNames <- sapply(names(data), isNum, data = data)
-    names(data)[numNames]
-  }
-  
-  find_factor_vars <- function(data) {
-    isFac <- function(name, data) {
-      is.factor(get(name, envir = as.environment(data)))
-    }
-    facNames <- sapply(names(data), isFac, data = data)
-    names(data)[facNames]
-  }
-  
-  find_facnum_vars <- function(data) {
-    isFacNum <- function(name, data) {
-      var <- get(name, envir = as.environment(data))
-      is.factor(var) || is.numeric(var)
-    }
-    facNumNames <- sapply(names(data), isFacNum, data = data)
-    names(data)[facNumNames]
-  }
-  
-  entered <- function(string) {
-    !is.null(string) && nzchar(string)
-  }
-  
-  suggestedName <- function(varName) {
-    if (tolower(varName) != varName) {
-      suggestion <- tolower(varName)
-    } else {
-      suggestion <- Hmisc::capitalize(varName)
-    }
-  }
-  
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
   
@@ -67,18 +28,18 @@ bwplotAddin <- function() {
     gadgetTitleBar("Box-and-Whiskers Plot Code-Helper"),
     miniContentPanel(
       sidebarLayout(
-        sidebarPanel(width = 3,
+        sidebarPanel(width = 2,
                      textInput("data", "Data", value = defaultData),
                      helpText("Choose the numerical variable."),
                      uiOutput("xVar")
         ),
-        mainPanel(width = 9,
+        mainPanel(width = 10,
                   tabsetPanel(id = "buildertabs",
                               tabPanel(
                                 title = "Group",
                                 uiOutput("pending1"),
                                 fluidRow(
-                                  column(width = 4,
+                                  column(width = 5,
                                          h3("The Plot"),
                                          plotOutput("plot1")),
                                   column(width = 5,
@@ -95,7 +56,7 @@ bwplotAddin <- function() {
                                 title = "Facet",
                                 uiOutput("pending2"),
                                 fluidRow(
-                                  column(width = 4,
+                                  column(width = 5,
                                          h3("The Plot"),
                                          plotOutput("plot2")),
                                   column(width = 5,
@@ -132,7 +93,7 @@ bwplotAddin <- function() {
                                 title = "Other",
                                 uiOutput("pending3"),
                                 fluidRow(
-                                  column(width = 4,
+                                  column(width = 5,
                                          h3("The Plot"),
                                          plotOutput("plot3")),
                                   column(width = 5,
@@ -149,22 +110,22 @@ bwplotAddin <- function() {
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("main")),
+                                  column(width = 5, uiOutput("main")),
                                   column(width = 2, uiOutput("mainsize"))
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("sub")),
+                                  column(width = 5, uiOutput("sub")),
                                   column(width = 2, uiOutput("subsize"))
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("xlab")),
+                                  column(width = 5, uiOutput("xlab")),
                                   column(width = 2, uiOutput("xlabsize"))
                                 )
                                 ,
                                 fluidRow(
-                                  column(width = 7, uiOutput("ylab")),
+                                  column(width = 5, uiOutput("ylab")),
                                   column(width = 2, uiOutput("ylabsize"))
                                 )
                               ) # end tabPanel "Other"
@@ -293,54 +254,54 @@ bwplotAddin <- function() {
         "\n\t\tpanel.stripplot(..., jitter.data = TRUE)}")
       }
       
-      # main, ,sub, xlab
-      if (entered(input$main) && input$mainsize == 1) {
+      # main, sub, xlab, ylab
+      if (entered(input$main) && exists_as_numeric(input$mainsize) &&  input$mainsize == 1) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
       }
       
-      if (entered(input$main) && input$mainsize != 1) {
+      if (entered(input$main) && exists_as_numeric(input$mainsize) && input$mainsize != 1) {
         code <- paste0(code, ",\n\tmain = list(label=\"",input$main, "\"",
                        ",\n\t\tcex = ",input$mainsize,
                        ")")
       }
       
-      if (entered(input$sub) && input$subsize == 1) {
+      if (entered(input$sub) && exists_as_numeric(input$subsize) && input$subsize == 1) {
         code <- paste0(code, ",\n\tsub = \"",input$sub,"\"")
       }
       
-      if (entered(input$sub) && input$subsize != 1) {
+      if (entered(input$sub) && exists_as_numeric(input$subsize) && input$subsize != 1) {
         code <- paste0(code, ",\n\tsub = list(label=\"",input$sub, "\"",
                        ",\n\t\tcex = ",input$subsize,
                        ")")
       } 
       
-      if (entered(input$xlab) && input$xlabsize == 1) {
+      if (entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize == 1) {
         code <- paste0(code, ",\n\txlab = \"",input$xlab,"\"")
       }
       
-      if (!entered(input$xlab) && !is.null(input$xlabsize) && input$xlabsize !=1) {
+      if (!entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize !=1) {
         code <- paste0(code, ",\n\txlab = list(cex = ",input$xlabsize,")")
       }
       
-      if (entered(input$xlab) && input$xlabsize != 1) {
+      if (entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize != 1) {
         code <- paste0(code, ",\n\txlab = list(label=\"",input$xlab, "\"",
                        ",\n\t\tcex = ",input$xlabsize,
                        ")")
-      }
+      } 
       
-      if (entered(input$ylab) && input$ylabsize == 1) {
+      if (entered(input$ylab) && exists_as_numeric(input$ylabsize) &&  input$ylabsize == 1) {
         code <- paste0(code, ",\n\tylab = \"",input$ylab,"\"")
       }
       
-      if (!entered(input$ylab) && !is.null(input$ylabsize) && input$ylabsize !=1) {
+      if (!entered(input$ylab) && exists_as_numeric(input$ylabsize) && input$ylabsize !=1) {
         code <- paste0(code, ",\n\tylab = list(cex = ",input$ylabsize,")")
       }
       
-      if (entered(input$ylab) && input$ylabsize != 1) {
+      if (entered(input$ylab) && exists_as_numeric(input$ylabsize) && input$ylabsize != 1) {
         code <- paste0(code, ",\n\tylab = list(label=\"",input$ylab, "\"",
                        ",\n\t\tcex = ",input$ylabsize,
                        ")")
-      }
+      } 
       
       # theme argument
       wantBW <- !is.null(input$bw) && input$bw
@@ -486,7 +447,7 @@ bwplotAddin <- function() {
       }
       selectInput(inputId = "group", label = "Group by:",
                   choices = c("", availableFactors),
-                  selected = selected)
+                  selected = selected, size = 4, selectize = F)
     })
     
     

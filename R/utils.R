@@ -1,3 +1,49 @@
+## My utils -------
+
+exists_as_numeric <- function(var) {
+  !is.null(var) && !is.na(var)
+}
+
+find_numeric_vars <- function(data) {
+  isNum <- function(name, data) {
+    is.numeric(get(name, envir = as.environment(data)))
+  }
+  numNames <- sapply(names(data), isNum, data = data)
+  names(data)[numNames]
+}
+
+find_factor_vars <- function(data) {
+  isFac <- function(name, data) {
+    is.factor(get(name, envir = as.environment(data)))
+  }
+  facNames <- sapply(names(data), isFac, data = data)
+  names(data)[facNames]
+}
+
+find_facnum_vars <- function(data) {
+  isFacNum <- function(name, data) {
+    var <- get(name, envir = as.environment(data))
+    is.factor(var) || is.numeric(var)
+  }
+  facNumNames <- sapply(names(data), isFacNum, data = data)
+  names(data)[facNumNames]
+}
+
+entered <- function(string) {
+  !is.null(string) && nzchar(string)
+}
+
+suggestedName <- function(varName) {
+  if (tolower(varName) != varName) {
+    suggestion <- tolower(varName)
+  } else {
+    suggestion <- Hmisc::capitalize(varName)
+  }
+}
+
+
+
+## code highlighting ----------
 injectHighlightHandler <- function() {
 
   code <- "

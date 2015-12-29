@@ -15,45 +15,6 @@
 #'
 #' @export
 cloudplotAddin <- function() {
-  
-  # utilities --------------------
-  
-  find_numeric_vars <- function(data) {
-    isNum <- function(name, data) {
-      is.numeric(get(name, envir = as.environment(data)))
-    }
-    numNames <- sapply(names(data), isNum, data = data)
-    names(data)[numNames]
-  }
-  
-  find_factor_vars <- function(data) {
-    isFac <- function(name, data) {
-      is.factor(get(name, envir = as.environment(data)))
-    }
-    facNames <- sapply(names(data), isFac, data = data)
-    names(data)[facNames]
-  }
-  
-  find_facnum_vars <- function(data) {
-    isFacNum <- function(name, data) {
-      var <- get(name, envir = as.environment(data))
-      is.factor(var) || is.numeric(var)
-    }
-    facNumNames <- sapply(names(data), isFacNum, data = data)
-    names(data)[facNumNames]
-  }
-  
-  entered <- function(string) {
-    !is.null(string) && nzchar(string)
-  }
-  
-  suggestedName <- function(varName) {
-    if (tolower(varName) != varName) {
-      suggestion <- tolower(varName)
-    } else {
-      suggestion <- Hmisc::capitalize(varName)
-    }
-  }
 
   # Get the document context.
   context <- rstudioapi::getActiveDocumentContext()
@@ -154,6 +115,12 @@ cloudplotAddin <- function() {
           )
           ,
           fluidRow(
+            column(width = 3, uiOutput("pch")),
+            column(width = 3, uiOutput("bw")),
+            column(width=3, uiOutput("zoom"))
+          )
+          ,
+          fluidRow(
             column(width = 7, uiOutput("main")),
             column(width = 2, uiOutput("mainsize"))
             )
@@ -176,12 +143,6 @@ cloudplotAddin <- function() {
           fluidRow(
             column(width = 7, uiOutput("zlab")),
             column(width = 2, uiOutput("zlabsize"))
-          )
-          ,
-          fluidRow(
-            column(width = 3, uiOutput("pch")),
-            column(width = 3, uiOutput("bw")),
-            column(width=3, uiOutput("zoom"))
           )
         )
         ) # end tabsetPanel
@@ -304,70 +265,70 @@ cloudplotAddin <- function() {
       }
       
       # main, xlab, ylab. zlab
-      if (entered(input$main) && input$mainsize == 1) {
+      if (entered(input$main) && exists_as_numeric(input$mainsize) &&  input$mainsize == 1) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
       }
       
-      if (entered(input$main) && input$mainsize != 1) {
+      if (entered(input$main) && exists_as_numeric(input$mainsize) && input$mainsize != 1) {
         code <- paste0(code, ",\n\tmain = list(label=\"",input$main, "\"",
                        ",\n\t\tcex = ",input$mainsize,
                        ")")
       }
       
-      if (entered(input$sub) && input$subsize == 1) {
+      if (entered(input$sub) && exists_as_numeric(input$subsize) && input$subsize == 1) {
         code <- paste0(code, ",\n\tsub = \"",input$sub,"\"")
       }
       
-      if (entered(input$sub) && input$subsize != 1) {
+      if (entered(input$sub) && exists_as_numeric(input$subsize) && input$subsize != 1) {
         code <- paste0(code, ",\n\tsub = list(label=\"",input$sub, "\"",
                        ",\n\t\tcex = ",input$subsize,
                        ")")
       } 
       
-      if (entered(input$xlab) && input$xlabsize == 1) {
+      if (entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize == 1) {
         code <- paste0(code, ",\n\txlab = \"",input$xlab,"\"")
       }
       
-      if (!entered(input$xlab) && !is.null(input$xlabsize) && input$xlabsize !=1) {
+      if (!entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize !=1) {
         code <- paste0(code, ",\n\txlab = list(cex = ",input$xlabsize,")")
       }
       
-      if (entered(input$xlab) && input$xlabsize != 1) {
+      if (entered(input$xlab) && exists_as_numeric(input$xlabsize) && input$xlabsize != 1) {
         code <- paste0(code, ",\n\txlab = list(label=\"",input$xlab, "\"",
                        ",\n\t\tcex = ",input$xlabsize,
                        ")")
       } 
       
-      if (entered(input$ylab) && input$ylabsize == 1) {
+      if (entered(input$ylab) && exists_as_numeric(input$ylabsize) &&  input$ylabsize == 1) {
         code <- paste0(code, ",\n\tylab = \"",input$ylab,"\"")
       }
       
-      if (!entered(input$ylab) && !is.null(input$ylabsize) && input$ylabsize !=1) {
+      if (!entered(input$ylab) && exists_as_numeric(input$ylabsize) && input$ylabsize !=1) {
         code <- paste0(code, ",\n\tylab = list(cex = ",input$ylabsize,")")
       }
       
-      if (entered(input$ylab) && input$ylabsize != 1) {
+      if (entered(input$ylab) && exists_as_numeric(input$ylabsize) && input$ylabsize != 1) {
         code <- paste0(code, ",\n\tylab = list(label=\"",input$ylab, "\"",
                        ",\n\t\tcex = ",input$ylabsize,
                        ")")
-      } 
+      }
       
-      if (entered(input$zlab) && input$zlabsize == 1) {
+      if (entered(input$zlab) && exists_as_numeric(input$zlabsize) &&  input$zlabsize == 1) {
         code <- paste0(code, ",\n\tzlab = \"",input$zlab,"\"")
       }
       
-      if (!entered(input$zlab) && !is.null(input$zlabsize) && input$zlabsize !=1) {
+      if (!entered(input$zlab) && exists_as_numeric(input$zlabsize) && input$zlabsize !=1) {
         code <- paste0(code, ",\n\tzlab = list(cex = ",input$zlabsize,")")
       }
       
-      if (entered(input$zlab) && input$zlabsize != 1) {
+      if (entered(input$zlab) && exists_as_numeric(input$zlabsize) && input$zlabsize != 1) {
         code <- paste0(code, ",\n\tzlab = list(label=\"",input$zlab, "\"",
                        ",\n\t\tcex = ",input$zlabsize,
                        ")")
-      } 
+      }
       
       # pch argument
-      if (!is.null(input$pch)) {
+      if (exists_as_numeric(input$pch) && !input$bw) {
         code <- paste0(code,",\n\tpch = ",input$pch)
       }
       
@@ -870,6 +831,9 @@ cloudplotAddin <- function() {
     
     output$pch <- renderUI({
       if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      if (input$bw) {
         return(NULL)
       }
       numericInput(inputId = "pch","Point Type", 
