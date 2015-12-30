@@ -158,7 +158,8 @@ barchartAddin <- function() {
     ###########################
     
     rv <- reactiveValues(
-      code = NULL
+      code = NULL,
+      customlabels = NULL
     )
     
     ## Reactive functions -------------------
@@ -655,9 +656,29 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
+      value <- ifelse(is.null(isolate(rv$customlabels)), FALSE, TRUE)
       checkboxInput(inputId = "ownlabs", 
                     label = paste0("Rename ",ifelse(input$horizontal,"y","x"),
-                                   "-axis values?"))
+                                   "-axis values?"), value = value)
+    })
+    
+    observeEvent(input$ownlabs,{
+      if (!is.null(input$ownlabs) && !input$ownlabs)
+        rv$customlabels <- NULL
+    })
+    
+    #keep custom lavels if the only thing you are oding is changing orientation
+    observeEvent(input$horizontal,{
+      rv$customlabels <- input$customlabels
+    })
+    
+    # Remove custom names whenever grouping variable is changed:
+    observe({
+      input$group
+      updateCheckboxInput(session, inputId = "ownlabs", value = FALSE)
+      updateTextInput(session, inputId = "customlabels", value = NULL)
+      updateNumericInput(session, inputId = "rotatelabs", value = 0)
+      rv$customlabels <- NULL
     })
     
     output$rotatelabs <- renderUI({
@@ -674,7 +695,8 @@ barchartAddin <- function() {
       if (!reactiveVarCheck() || is.null(input$ownlabs) || !input$ownlabs) {
         return(NULL)
       }
-      textInput(inputId = "customlabels", label = "Values (comma-separated)")
+      textInput(inputId = "customlabels", label = "Values (comma-separated)",
+                value = rv$customlabels)
     })
     
     output$bw <- renderUI({
