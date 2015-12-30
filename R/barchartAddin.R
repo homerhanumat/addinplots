@@ -268,7 +268,8 @@ barchartAddin <- function() {
       
       if ( CustomLabels && rotateLabels ) {
         code <- paste0(code, ",\n\tscale = list(",labelAxis,
-                       " = list(labels = c(",cl,"), rot = ",input$rotatelabs,"))")
+                       " = list(labels = c(",cl,"),\n\t\t\t      rot = ",
+                       input$rotatelabs,"))")
       }
       
       if ( !CustomLabels && rotateLabels ) {
@@ -688,7 +689,7 @@ barchartAddin <- function() {
       numericInput(inputId = "rotatelabs", 
                    label = paste0("Rotate ",ifelse(input$horizontal,"y","x"),
                                   "-axis values (degrees):"),
-                   value = 0)
+                   value = 0, step = 15)
     })
     
     output$customlabels <- renderUI({
