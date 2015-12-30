@@ -22,3 +22,8 @@ Name: Lattice Scatter Plot
 Description: Interactively make an xyplot.
 Binding: xyplotAddin
 Interactive: true
+
+Name: Lattice Bar Chart
+Description: Interactively make a barchart.
+Binding: barchartAddin
+Interactive: true
