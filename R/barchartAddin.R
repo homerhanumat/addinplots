@@ -73,6 +73,10 @@ barchartAddin <- function() {
                                 )
                                 ,
                                 fluidRow(
+                                 htmlOutput("facetmessage") 
+                                )
+                                ,
+                                fluidRow(
                                   column(width = 4, uiOutput("facet1")),
                                   column(width = 4, uiOutput("facet2"))
                                 )
@@ -111,7 +115,13 @@ barchartAddin <- function() {
                                 ,
                                 fluidRow(
                                   column(width = 2, uiOutput("stack")),
-                                  column(width = 2, uiOutput("horizontal"))
+                                  column(width = 2, uiOutput("horizontal")),
+                                  column(width = 3, uiOutput("ownlabs")),
+                                  column(width = 3, uiOutput("rotatelabs"))
+                                )
+                                ,
+                                fluidRow(
+                                  uiOutput("customlabels")
                                 )
                                 ,
                                 fluidRow(
@@ -185,7 +195,8 @@ barchartAddin <- function() {
       code <- ""
       
       # lead-up table-maker code:
-      talliedVar <- paste0(" + ",xvar)
+      talliedVar <- ifelse(entered(input$group),
+                           paste0(" + ",xvar), xvar)
       grouper <- ifelse(entered(input$group),
                         input$group,
                         "")
@@ -236,7 +247,37 @@ barchartAddin <- function() {
         prev_arg <- TRUE
       }
       
-      # main, ,sub, xlab, ylab
+      # customizing value-labels
+      CustomLabels <- !is.null(input$ownlabs) && input$ownlabs &&entered(input$customlabels)
+      rotateLabels <- exists_as_numeric(input$rotatelabs) && input$rotatelabs != 0
+      labelAxis <- ifelse(input$horizontal, "y","x")
+      
+      if ( CustomLabels ) {
+        cl <- unlist(strsplit(input$customlabels,split=","))
+        cl <- cl[cl !=""]
+        cl <- paste0(cl, collapse = '\",\"')
+        cl <- paste0('\"',cl,'\"')
+      }
+      
+      if ( CustomLabels && !rotateLabels ) {
+        code <- paste0(code, ",\n\tscale = list(",labelAxis,
+                       " = list(labels = c(",cl,")))")
+      }
+      
+      
+      if ( CustomLabels && rotateLabels ) {
+        code <- paste0(code, ",\n\tscale = list(",labelAxis,
+                       " = list(labels = c(",cl,"), rot = ",input$rotatelabs,"))")
+      }
+      
+      if ( !CustomLabels && rotateLabels ) {
+        code <- paste0(code, ",\n\tscale = list(",labelAxis,
+                       " = list(rot = ",input$rotatelabs,"))")
+      }
+      
+      
+    
+    # main, ,sub, xlab, ylab
       if (entered(input$main) && exists_as_numeric(input$mainsize) &&  input$mainsize == 1) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
       }
@@ -479,8 +520,15 @@ barchartAddin <- function() {
       rv$code
     })
     
+    output$facetmessage <- renderText({
+      if (!reactiveVarCheck()  || entered(input$group)) {
+        return(NULL)
+      }
+      "<strong>Facetting requires prior choice of grouping variable.</strong>"
+    })
+    
     output$facet1 <- renderUI({
-      if (!reactiveVarCheck()) {
+      if (!reactiveVarCheck()  || !entered(input$group)) {
         return(NULL)
       }
       data <- reactiveData()
@@ -601,6 +649,32 @@ barchartAddin <- function() {
         return(NULL)
       }
       checkboxInput(inputId = "horizontal", label = "Horizontal Bars", value = T)
+    })
+    
+    output$ownlabs <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "ownlabs", 
+                    label = paste0("Rename ",ifelse(input$horizontal,"y","x"),
+                                   "-axis values?"))
+    })
+    
+    output$rotatelabs <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      numericInput(inputId = "rotatelabs", 
+                   label = paste0("Rotate ",ifelse(input$horizontal,"y","x"),
+                                  "-axis values (degrees):"),
+                   value = 0)
+    })
+    
+    output$customlabels <- renderUI({
+      if (!reactiveVarCheck() || is.null(input$ownlabs) || !input$ownlabs) {
+        return(NULL)
+      }
+      textInput(inputId = "customlabels", label = "Values (comma-separated)")
     })
     
     output$bw <- renderUI({
