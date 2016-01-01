@@ -265,7 +265,7 @@ cloudplotAddin <- function() {
       }
       
       # pch argument
-      if (exists_as_numeric(input$pch) && input%pch !=1 && !input$bw) {
+      if (exists_as_numeric(input$pch) && input$pch !=1 && !input$bw) {
         code <- paste0(code,",\n\tpch = ",input$pch)
       }
       
@@ -277,7 +277,7 @@ cloudplotAddin <- function() {
       }
       
       # zoom argument
-      wantZoom <- !is.null(input$zoom) && is.numeric(input$zoom) && input$zoom != 1
+      wantZoom <- exists_as_numeric(input$zoom) && input$zoom > 0 && input$zoom != 1
       if ( wantZoom ) {
         code <- paste0(code, ",\n\tzoom = ",input$zoom)
       }
