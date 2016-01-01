@@ -305,7 +305,7 @@ xyplotAddin <- function() {
         )
         arg_prev <- TRUE
       }
-      if (exists_as_numeric(pch) && !input$bw) {
+      if (exists_as_numeric(pch) && pch != 1 &&!input$bw) {
         ifelse(arg_prev,
                code <- paste0(code,', pch = ', pch),
                code <- paste0(code,',\n\tpch = ',pch)
@@ -847,7 +847,7 @@ xyplotAddin <- function() {
         return(NULL)
       }
       numericInput(inputId = "pch","Point Type", 
-                   min = 1, max = 25, step =1, value = 19, width = "100px")
+                   min = 1, max = 25, step =1, value = 1, width = "100px")
     })
     
     output$bw <- renderUI({

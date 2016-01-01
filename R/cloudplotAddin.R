@@ -264,6 +264,24 @@ cloudplotAddin <- function() {
                        ")")
       }
       
+      # pch argument
+      if (exists_as_numeric(input$pch) && input%pch !=1 && !input$bw) {
+        code <- paste0(code,",\n\tpch = ",input$pch)
+      }
+      
+      # theme argument
+      wantBW <- !is.null(input$bw) && input$bw
+      if ( wantBW ) {
+        code <- paste0(code, 
+                       ",\n\tpar.settings = canonical.theme(color=FALSE)")
+      }
+      
+      # zoom argument
+      wantZoom <- !is.null(input$zoom) && is.numeric(input$zoom) && input$zoom != 1
+      if ( wantZoom ) {
+        code <- paste0(code, ",\n\tzoom = ",input$zoom)
+      }
+      
       # main, xlab, ylab. zlab
       if (entered(input$main) && exists_as_numeric(input$mainsize) &&  input$mainsize == 1) {
         code <- paste0(code, ",\n\tmain = \"",input$main, "\"")
@@ -325,24 +343,6 @@ cloudplotAddin <- function() {
         code <- paste0(code, ",\n\tzlab = list(label=\"",input$zlab, "\"",
                        ",\n\t\tcex = ",input$zlabsize,
                        ")")
-      }
-      
-      # pch argument
-      if (exists_as_numeric(input$pch) && !input$bw) {
-        code <- paste0(code,",\n\tpch = ",input$pch)
-      }
-      
-      # theme argument
-      wantBW <- !is.null(input$bw) && input$bw
-      if ( wantBW ) {
-        code <- paste0(code, 
-            ",\n\tpar.settings = canonical.theme(color=FALSE)")
-      }
-      
-      # zoom argument
-      wantZoom <- !is.null(input$zoom) && is.numeric(input$zoom) && input$zoom != 1
-      if ( wantZoom ) {
-        code <- paste0(code, ",\n\tzoom = ",input$zoom)
       }
       
       # add closing paren:
@@ -837,7 +837,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       numericInput(inputId = "pch","Point Type", 
-                   min = 1, max = 25, step =1, value = 19, width = "100px")
+                   min = 1, max = 25, step =1, value = 1, width = "100px")
     })
     
     output$bw <- renderUI({
