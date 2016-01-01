@@ -250,8 +250,17 @@ cloudplotAddin <- function() {
       }
       
       # the screen argument
-      code <- paste0(code, ",\n\tscreen = list(x = -",input$xScreen,",\n\t\t\ty = ",
-                     input$yScreen,",\n\t\t\tz = ",input$zScreen,")")
+      xscr <- input$xScreen; yscr <- input$yScreen; zscr <- input$zScreen
+      
+      # if I were to use default lattice ordering of x,y,z rotations:
+      # atDefaultVals <- xscr == -60 && yscr == 0 && zscr == 40
+      # if ( !atDefaultVals) ) {
+      # code <- paste0(code, ",\n\tscreen = list(z = -",zscr,",\n\t\t\tx = ",
+      #                xscr,",\n\t\t\ty = ",yscr,")")
+      
+      # But I think this is easier for the new user:
+        code <- paste0(code, ",\n\tscreen = list(x = -",xscr,",\n\t\t\ty = ",
+                      yscr,",\n\t\t\tz = ",zscr,")")
      
       # groups argument 
       if ( entered(input$group) ) {
