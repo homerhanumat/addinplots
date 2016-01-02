@@ -22,9 +22,80 @@ cloudplotAddin <- function() {
   # Set the default data to use based on the selection.
   text <- context$selection[[1]]$text
   defaultData <- text
+  
+  myTextInput <- function(inputId, label, value = "") {
+    tagList(tags$label(label, `for` = inputId), 
+            tags$input(id = inputId, 
+                      type = "text", value = value,
+                      class="myTextInput form-control shiny-bound-input"))
+  }
+  
+#   code <- HTML(
+#     '<script>
+# $(document).ready( function () {
+#   $("img").wrap("<a class = \'plotzoom\' href = \'#\' target=\'_blank\'></a>");
+#   $(".plotzoom").mouseover( function() {
+#     this.href = this.firstElementChild.src;
+#   });
+# });
+#     </script>'
+#   )
+  
+  code = HTML(" <script> var myTextInputBinding = new Shiny.InputBinding();
+            $.extend(myTextInputBinding, {
+             find: function(scope) {
+             return $(scope).find('.myTextInput');
+             },
+             getId: function(el) {
+             //return InputBinding.prototype.getId.call(this, el) || el.name;
+             return $(el).attr('id')
+             },
+             getValue: function(el) {
+             return el.value;
+             },
+             setValue: function(el, value) {
+             el.value = value;
+             },
+             subscribe: function(el, callback) {
+             $(el).on('keyup.textInputBinding input.textInputBinding', function(event) {
+             if(event.keyCode == 13) { //if enter
+             callback()
+             }
+             });
+             $(el).on('focusout.myTextInputBinding', function(event) { // on losing focus
+             callback();
+             });
+             },
+             unsubscribe: function(el) {
+             $(el).off('.myTextInputBinding');
+             },
+             receiveMessage: function(el, data) {
+             if (data.hasOwnProperty('value'))
+             this.setValue(el, data.value);
+             
+             if (data.hasOwnProperty('label'))
+             $(el).parent().find('label[for=' + el.id + ']').text(data.label);
+             
+             $(el).trigger('change');
+             },
+             getState: function(el) {
+             return {
+             label: $(el).parent().find('label[for=' + el.id + ']').text(),
+             value: el.value
+             };
+             },
+             getRatePolicy: function() {
+             return {
+             policy: 'debounce',
+             delay: 250
+             };
+             }
+});
+             Shiny.inputBindings.register(myTextInputBinding, 'shiny.myTextInput');</script>")
 
   # Generate UI for the gadget -------------------
   ui <- miniPage(
+    code,
     gadgetTitleBar("Cloudplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
@@ -509,7 +580,7 @@ cloudplotAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      textInput(inputId = "keytitle", label = "Legend title:",
+      myTextInput(inputId = "keytitle", label = "Legend title:",
                 value = input$group)
     })
     
@@ -626,7 +697,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      textInput(inputId = "f1name", label = "Shingle Name",
+      myTextInput(inputId = "f1name", label = "Shingle Name",
                 value = suggestedName(input$facet1))
     })
     
@@ -674,7 +745,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      textInput(inputId = "f2name", label = "Shingle 2 Name",
+      myTextInput(inputId = "f2name", label = "Shingle 2 Name",
                 value = suggestedName(input$facet2))
     })
     
@@ -767,7 +838,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "main","Graph Title", value = "")
+      myTextInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
@@ -782,7 +853,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "sub","Graph Sub-title", value = "")
+      myTextInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
@@ -797,7 +868,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "xlab","x-Label", value = "")
+      myTextInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
@@ -812,7 +883,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "ylab","y-Label", value = "")
+      myTextInput(inputId = "ylab","y-Label", value = "")
     })
     
     output$ylabsize <- renderUI({
@@ -827,7 +898,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "zlab","z-Label", value = "")
+      myTextInput(inputId = "zlab","z-Label", value = "")
     })
     
     output$zlabsize <- renderUI({
