@@ -30,11 +30,11 @@ cloudplotAddin <- function() {
                       class="myTextInput form-control shiny-bound-input"))
   }
   
-#   code <- HTML(
+#   code2 <- HTML(
 #     '<script>
 # $(document).ready( function () {
 #   $("img").wrap("<a class = \'plotzoom\' href = \'#\' target=\'_blank\'></a>");
-#   $(".plotzoom").mouseover( function() {
+#   $(".plotzoom").bind(\'mouseover\', function() {
 #     this.href = this.firstElementChild.src;
 #   });
 # });
@@ -96,6 +96,7 @@ cloudplotAddin <- function() {
   # Generate UI for the gadget -------------------
   ui <- miniPage(
     code,
+ #   code2,
     gadgetTitleBar("Cloudplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
