@@ -41,6 +41,15 @@ suggestedName <- function(varName) {
   }
 }
 
+# make limited-reactivity text input
+# lrTextInput <- function(inputId, label, value = "") {
+#   tagList(tags$head(tags$script(src = "js/custom.js")),
+#           tags$label(label, `for` = inputId),
+#           tags$input(id = inputId,
+#                      type = "text", value = value,
+#                      class="lrTextInput form-control shiny-bound-input"))
+# }
+
 
 
 ## code highlighting ----------

@@ -23,10 +23,10 @@ xyplotAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
   
-  # make limited-reactivity text input
   lrTextInput <- function(inputId, label, value = "") {
-    tagList(tags$label(label, `for` = inputId), 
-            tags$input(id = inputId, 
+    tagList(#singleton(tags$head(tags$script(src = "js/custom.js"))),
+            tags$label(label, `for` = inputId),
+            tags$input(id = inputId,
                        type = "text", value = value,
                        class="lrTextInput form-control shiny-bound-input"))
   }
@@ -87,6 +87,8 @@ xyplotAddin <- function() {
   # Generate UI for the gadget -------------------
   ui <- miniPage(
     code,
+    #tags$head(tags$script(src = "js/custom.js")),
+    #includeScript("js/custom.js"),
     gadgetTitleBar("xyplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
