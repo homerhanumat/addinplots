@@ -23,8 +23,70 @@ barchartAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
   
+  # make limited-reactivity text input:
+  lrTextInput <- function(inputId, label, value = "") {
+    tagList(tags$label(label, `for` = inputId), 
+            tags$input(id = inputId, 
+                       type = "text", value = value,
+                       class="lrTextInput form-control shiny-bound-input"))
+  }
+  
+  code <- HTML(" <script> var lrTextInputBinding = new Shiny.InputBinding();
+               $.extend(lrTextInputBinding, {
+               find: function(scope) {
+               return $(scope).find('.lrTextInput');
+               },
+               getId: function(el) {
+               //return InputBinding.prototype.getId.call(this, el) || el.name;
+               return $(el).attr('id')
+               },
+               getValue: function(el) {
+               return el.value;
+               },
+               setValue: function(el, value) {
+               el.value = value;
+               },
+               subscribe: function(el, callback) {
+               $(el).on('keyup.lrTextInputBinding input.lrTextInputBinding', function(event) {
+               if(event.keyCode == 13) { //if enter
+               callback()
+               }
+               });
+               $(el).on('focusout.lrTextInputBinding', function(event) { // on losing focus
+               callback();
+               });
+               },
+               unsubscribe: function(el) {
+               $(el).off('.lrTextInputBinding');
+               },
+               receiveMessage: function(el, data) {
+               if (data.hasOwnProperty('value'))
+               this.setValue(el, data.value);
+               
+               if (data.hasOwnProperty('label'))
+               $(el).parent().find('label[for=' + el.id + ']').text(data.label);
+               
+               $(el).trigger('change');
+               },
+               getState: function(el) {
+               return {
+               label: $(el).parent().find('label[for=' + el.id + ']').text(),
+               value: el.value
+               };
+               },
+               getRatePolicy: function() {
+               return {
+               policy: 'debounce',
+               delay: 250
+               };
+               }
+               });
+               Shiny.inputBindings.register(lrTextInputBinding, 'shiny.lrTextInput');</script>")
+  
+  
   # UI for gadget ---------------------------------
   ui <- miniPage(
+    code,
     gadgetTitleBar("Histogram Code-Helper"),
     miniContentPanel(
       sidebarLayout(
@@ -477,7 +539,7 @@ barchartAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      textInput(inputId = "keytitle", label = "Legend title:",
+      lrTextInput(inputId = "keytitle", label = "Legend title:",
                 value = input$xVar)
     })
     
@@ -696,7 +758,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck() || is.null(input$ownlabs) || !input$ownlabs) {
         return(NULL)
       }
-      textInput(inputId = "customlabels", label = "Values (comma-separated)",
+      lrTextInput(inputId = "customlabels", label = "Values (comma-separated)",
                 value = rv$customlabels)
     })
     
@@ -711,7 +773,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "main","Graph Title", value = "")
+      lrTextInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
@@ -726,7 +788,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "sub","Graph Sub-title", value = "")
+      lrTextInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
@@ -741,7 +803,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "xlab","x-Label", value = "")
+      lrTextInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
@@ -756,7 +818,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "ylab","y-Label", value = "")
+      lrTextInput(inputId = "ylab","y-Label", value = "")
     })
     
     output$ylabsize <- renderUI({

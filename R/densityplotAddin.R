@@ -22,9 +22,71 @@ densityplotAddin <- function() {
   # Set the default data to use based on the selection.
   text <- context$selection[[1]]$text
   defaultData <- text
+  
+  # make limited-reactivity text input
+  lrTextInput <- function(inputId, label, value = "") {
+    tagList(tags$label(label, `for` = inputId), 
+            tags$input(id = inputId, 
+                       type = "text", value = value,
+                       class="lrTextInput form-control shiny-bound-input"))
+  }
+  
+  code <- HTML(" <script> var lrTextInputBinding = new Shiny.InputBinding();
+               $.extend(lrTextInputBinding, {
+               find: function(scope) {
+               return $(scope).find('.lrTextInput');
+               },
+               getId: function(el) {
+               //return InputBinding.prototype.getId.call(this, el) || el.name;
+               return $(el).attr('id')
+               },
+               getValue: function(el) {
+               return el.value;
+               },
+               setValue: function(el, value) {
+               el.value = value;
+               },
+               subscribe: function(el, callback) {
+               $(el).on('keyup.lrTextInputBinding input.lrTextInputBinding', function(event) {
+               if(event.keyCode == 13) { //if enter
+               callback()
+               }
+               });
+               $(el).on('focusout.lrTextInputBinding', function(event) { // on losing focus
+               callback();
+               });
+               },
+               unsubscribe: function(el) {
+               $(el).off('.lrTextInputBinding');
+               },
+               receiveMessage: function(el, data) {
+               if (data.hasOwnProperty('value'))
+               this.setValue(el, data.value);
+               
+               if (data.hasOwnProperty('label'))
+               $(el).parent().find('label[for=' + el.id + ']').text(data.label);
+               
+               $(el).trigger('change');
+               },
+               getState: function(el) {
+               return {
+               label: $(el).parent().find('label[for=' + el.id + ']').text(),
+               value: el.value
+               };
+               },
+               getRatePolicy: function() {
+               return {
+               policy: 'debounce',
+               delay: 250
+               };
+               }
+               });
+               Shiny.inputBindings.register(lrTextInputBinding, 'shiny.lrTextInput');</script>")
+  
 
   # UI for gadget ---------------------------------
   ui <- miniPage(
+    code,
     gadgetTitleBar("Densityplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
@@ -478,7 +540,7 @@ densityplotAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      textInput(inputId = "keytitle", label = "Legend title:",
+      lrTextInput(inputId = "keytitle", label = "Legend title:",
                 value = input$group)
     })
     
@@ -593,7 +655,7 @@ densityplotAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      textInput(inputId = "f1name", label = "Shingle Name",
+      lrTextInput(inputId = "f1name", label = "Shingle Name",
                 value = suggestedName(input$facet1))
     })
     
@@ -641,7 +703,7 @@ densityplotAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      textInput(inputId = "f2name", label = "Shingle 2 Name",
+      lrTextInput(inputId = "f2name", label = "Shingle 2 Name",
                 value = suggestedName(input$facet2))
     })
     
@@ -734,7 +796,7 @@ densityplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "main","Graph Title", value = "")
+      lrTextInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
@@ -749,7 +811,7 @@ densityplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "sub","Graph Sub-title", value = "")
+      lrTextInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
@@ -764,7 +826,7 @@ densityplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "xlab","x-Label", value = "")
+      lrTextInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
@@ -805,14 +867,14 @@ densityplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "from", label = "Start curve at")
+      lrTextInput(inputId = "from", label = "Start curve at")
     })
     
     output$to <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      textInput(inputId = "to", label = "End curve at")
+      lrTextInput(inputId = "to", label = "End curve at")
     })
     
     output$bw <- renderUI({

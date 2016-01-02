@@ -23,11 +23,11 @@ cloudplotAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
   
-  myTextInput <- function(inputId, label, value = "") {
+  lrTextInput <- function(inputId, label, value = "") {
     tagList(tags$label(label, `for` = inputId), 
             tags$input(id = inputId, 
                       type = "text", value = value,
-                      class="myTextInput form-control shiny-bound-input"))
+                      class="lrTextInput form-control shiny-bound-input"))
   }
   
 #   code2 <- HTML(
@@ -41,10 +41,10 @@ cloudplotAddin <- function() {
 #     </script>'
 #   )
   
-  code = HTML(" <script> var myTextInputBinding = new Shiny.InputBinding();
-            $.extend(myTextInputBinding, {
+  code = HTML(" <script> var lrTextInputBinding = new Shiny.InputBinding();
+            $.extend(lrTextInputBinding, {
              find: function(scope) {
-             return $(scope).find('.myTextInput');
+             return $(scope).find('.lrTextInput');
              },
              getId: function(el) {
              //return InputBinding.prototype.getId.call(this, el) || el.name;
@@ -62,12 +62,12 @@ cloudplotAddin <- function() {
              callback()
              }
              });
-             $(el).on('focusout.myTextInputBinding', function(event) { // on losing focus
+             $(el).on('focusout.lrTextInputBinding', function(event) { // on losing focus
              callback();
              });
              },
              unsubscribe: function(el) {
-             $(el).off('.myTextInputBinding');
+             $(el).off('.lrTextInputBinding');
              },
              receiveMessage: function(el, data) {
              if (data.hasOwnProperty('value'))
@@ -91,7 +91,7 @@ cloudplotAddin <- function() {
              };
              }
 });
-             Shiny.inputBindings.register(myTextInputBinding, 'shiny.myTextInput');</script>")
+             Shiny.inputBindings.register(lrTextInputBinding, 'shiny.lrTextInput');</script>")
 
   # Generate UI for the gadget -------------------
   ui <- miniPage(
@@ -581,7 +581,7 @@ cloudplotAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      myTextInput(inputId = "keytitle", label = "Legend title:",
+      lrTextInput(inputId = "keytitle", label = "Legend title:",
                 value = input$group)
     })
     
@@ -698,7 +698,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      myTextInput(inputId = "f1name", label = "Shingle Name",
+      lrTextInput(inputId = "f1name", label = "Shingle Name",
                 value = suggestedName(input$facet1))
     })
     
@@ -746,7 +746,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      myTextInput(inputId = "f2name", label = "Shingle 2 Name",
+      lrTextInput(inputId = "f2name", label = "Shingle 2 Name",
                 value = suggestedName(input$facet2))
     })
     
@@ -839,7 +839,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      myTextInput(inputId = "main","Graph Title", value = "")
+      lrTextInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
@@ -854,7 +854,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      myTextInput(inputId = "sub","Graph Sub-title", value = "")
+      lrTextInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
@@ -869,7 +869,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      myTextInput(inputId = "xlab","x-Label", value = "")
+      lrTextInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
@@ -884,7 +884,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      myTextInput(inputId = "ylab","y-Label", value = "")
+      lrTextInput(inputId = "ylab","y-Label", value = "")
     })
     
     output$ylabsize <- renderUI({
@@ -899,7 +899,7 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      myTextInput(inputId = "zlab","z-Label", value = "")
+      lrTextInput(inputId = "zlab","z-Label", value = "")
     })
     
     output$zlabsize <- renderUI({
