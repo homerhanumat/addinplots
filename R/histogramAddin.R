@@ -276,18 +276,18 @@ histogramAddin <- function() {
         }
       }
       
-      # histogram type (or add densityplot)
-      wantsDensityPlot <- !is.null(input$adddensity) && input$adddensity
-      if (!wantsDensityPlot && entered(input$type)) {
-        if (input$type == "percent" || input$type == "density") {
+      # histogram type, adn densityplot option
+      if (entered(input$type)) {
+        if (input$type == "count" || input$type == "density") {
           code <- paste0(code, ",\n\ttype = \"",input$type, "\"")
         }
       }
-      
+      typeDensity <- entered(input$type) && input$type == "density"
+      wantsDensityPlot <- typeDensity && !is.null(input$adddensity) && input$adddensity
       if ( wantsDensityPlot ) {
         code <- paste0(code, ",\n\tpanel=function(x, ...) {",
                        "\n\t\tpanel.histogram(x, ...)",
-                       "\n\t\tpanel.densityplot(x, ...)}")
+                       "\n\t\tpanel.densityplot(x, ..., darg = list(n = 500))}")
       }
       
       # main, ,sub, xlab
@@ -780,16 +780,22 @@ histogramAddin <- function() {
         return(NULL)
       }
       selectInput(inputId = "type", label = "Histogram Type",
-                  choices = c("Count" = "count",
-                              "Percentage" = "percent",
+                  choices = c("Percentage" = "percent",
+                              "Count" = "count",
                               "Density" = "density"))
     })
     
     output$adddensity <- renderUI({
-      if (!reactiveVarCheck()) {
+      if (!reactiveVarCheck() || (entered(input$type) && input$type != "density")) {
         return(NULL)
       }
       checkboxInput(inputId = "adddensity", label = "Add a density plot")
+    })
+    
+    observeEvent(input$type,{
+      if (entered(input$type) && input$type != "density") {
+        updateCheckboxInput(session, "adddensity", FALSE)
+      }
     })
     
     output$bw <- renderUI({
