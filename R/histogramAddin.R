@@ -23,18 +23,9 @@ histogramAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
   
-  # make limited-reactivity text input
-  lrTextInput <- function(inputId, label, value = "") {
-    tagList(tags$label(label, `for` = inputId), 
-            tags$input(id = inputId, 
-                       type = "text", value = value,
-                       class="lrTextInput form-control shiny-bound-input"))
-  }
-  
   # UI for gadget ---------------------------------
   ui <- miniPage(
-    #code,
-    includeScript(system.file("js/custom.js", package = "addinplots")),
+    useShinyCustom(),
     gadgetTitleBar("Histogram Code-Helper"),
     miniContentPanel(
       sidebarLayout(
@@ -490,7 +481,7 @@ histogramAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      lrTextInput(inputId = "keytitle", label = "Legend title:",
+      customTextInput(inputId = "keytitle", label = "Legend title:",
                 value = input$group)
     })
     
@@ -501,7 +492,7 @@ histogramAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      numericInput(inputId = "keytitlesize", label = "Title Size",
+      customNumericInput(inputId = "keytitlesize", label = "Title Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -512,7 +503,7 @@ histogramAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      numericInput(inputId = "keycolumns", label = "Key Columns",
+      customNumericInput(inputId = "keycolumns", label = "Key Columns",
                    min = 1, max = length(levels(input$group)), value = 1, step = 1)
     })
     
@@ -605,7 +596,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      lrTextInput(inputId = "f1name", label = "Shingle Name",
+      customTextInput(inputId = "f1name", label = "Shingle Name",
                 value = suggestedName(input$facet1))
     })
     
@@ -621,7 +612,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      numericInput(inputId = "f1number", label = "How Many?",
+      customNumericInput(inputId = "f1number", label = "How Many?",
                    min = 2, value = 2)
     })
     
@@ -637,7 +628,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      numericInput(inputId = "f1overlap", label = "Overlap",
+      customNumericInput(inputId = "f1overlap", label = "Overlap",
                    min = 0, value = 0.1)
     })
     
@@ -653,7 +644,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      lrTextInput(inputId = "f2name", label = "Shingle 2 Name",
+      customTextInput(inputId = "f2name", label = "Shingle 2 Name",
                 value = suggestedName(input$facet2))
     })
     
@@ -669,7 +660,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      numericInput(inputId = "f2number", label = "How Many?",
+      customNumericInput(inputId = "f2number", label = "How Many?",
                    min = 2, value = 2)
     })
     
@@ -685,7 +676,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      numericInput(inputId = "f2overlap", label = "Overlap",
+      customNumericInput(inputId = "f2overlap", label = "Overlap",
                    min = 0, value = 0.1)
     })
     
@@ -695,7 +686,7 @@ histogramAddin <- function() {
       }
       layout <- reactiveLayout()
       rows <- layout$rows
-      numericInput(inputId = "layrows", label = "Rows in Layout",
+      customNumericInput(inputId = "layrows", label = "Rows in Layout",
                    min = 1, value = rows)
     })
     
@@ -712,7 +703,7 @@ histogramAddin <- function() {
         return(NULL)
       }
       cols <- layout$cols
-      numericInput(inputId = "laycols", label = "Columns in Layout",
+      customNumericInput(inputId = "laycols", label = "Columns in Layout",
                    min = 1, value = cols)
     })
     
@@ -761,7 +752,7 @@ histogramAddin <- function() {
       if (!is.null(input$breakchoice) && input$breakchoice != "numberbreaks") {
         return(NULL)
       }
-      numericInput(inputId = "numberbreaks", label = "Number of Rectangles",
+      customNumericInput(inputId = "numberbreaks", label = "Number of Rectangles",
                    min = 1, value = 10)
     })
     
@@ -772,7 +763,7 @@ histogramAddin <- function() {
       if (!is.null(input$breakchoice) && input$breakchoice != "custom") {
         return(NULL)
       }
-      lrTextInput(inputId = "custom", label = "Breakpoints (comma-separated)")
+      customTextInput(inputId = "custom", label = "Breakpoints (comma-separated)")
     })
     
     output$type <- renderUI({
@@ -809,14 +800,14 @@ histogramAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "main","Graph Title", value = "")
+      customTextInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "mainsize","Graph Title Size",
+      customNumericInput(inputId = "mainsize","Graph Title Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -824,14 +815,14 @@ histogramAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "sub","Graph Sub-title", value = "")
+      customTextInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "subsize","Graph Sub-size",
+      customNumericInput(inputId = "subsize","Graph Sub-size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -839,14 +830,14 @@ histogramAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "xlab","x-Label", value = "")
+      customTextInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "xlabsize","x-Label Size",
+      customNumericInput(inputId = "xlabsize","x-Label Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     

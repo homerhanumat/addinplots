@@ -1,10 +1,11 @@
 Package: addinplots
 Title: Addins for Plotting
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: person("Homer", "White", email = "homerhanumat@gmail.com", role = c("aut", "cre"))
 Description: For use by my elementary statistics students. Provides a GUI for
     plotting functions (cloud plots, ggplot2, etc., for which we don't teach the
     code. Code output goes to the console or source document.
+URL:  URL: https://github.com/homerhanumat/addinplots
 Depends:
     R (>= 3.0.0)
 Imports:
@@ -12,7 +13,8 @@ Imports:
     lattice,
     miniUI,
     rstudioapi,
-    shiny
+    shiny,
+    shinyCustom
 License: GPL (>=3)
 LazyData: true
 RoxygenNote: 5.0.0

@@ -1,43 +1,27 @@
-_NOTE: RStudio addins are not yet part of a released version of RStudio. Stay tuned!_
+# addinplots
 
-RStudio Addins
-==============
+## Introduction
 
-RStudio addins are R functions that can be called through RStudio. This package
-provides a small set of example addins, and helps demonstrate how package
-authors can create and expose their own addins.
+This is a package of Addins.  For more about Addins and how to use them, please see
+[this article](https://support.rstudio.com/hc/en-us/articles/215605467).
 
-Installation
-------------
+Each Addin in this package is a code-helper for a particular type of plot in the `lattice` graphing system.  The intention is to help students and other newcomers to `lattice` to make reasonably well-customized graphs while teaching (through example) the rudiments of the coding principles of the `lattice` package.
 
-First, ensure that you have the latest versions of both
-[shiny](https://github.com/rstudio/shiny) and
-[shinygadgets](https://github.com/rstudio/shinygadgets);
-then install this package.
 
-```r
-if (!requireNamespace("devtools", quietly = TRUE))
-  install.packages("devtools")
+## Installation
 
-devtools::install_github("rstudio/shiny")
-devtools::install_github("rstudio/shinygadgets")
-devtools::install_github("rstudio/addinexamples")
+Follow the installation directions in the article cited above.  In addition, install this package and one of its dependencies:
+
+```
+devtools::install_github("homerhanumat/shinyCustom")
+devtools::install_github("homerhanumat/addinplots")
 ```
 
-What's an Addin?
-----------------
+## Use
 
-Addins are just R functions with a bit of special registration metadata. This
-package exports two simple addins: one function,
-[insert_in](https://github.com/rstudio/addinexamples/blob/master/R/insert-in.R),
-can be used to insert ' %in% ' at the cursor position. Another,
-[refactor](https://github.com/rstudio/addinexamples/blob/master/R/refactor.R),
-can be used to interactively refactor code in a document, using a Shiny application.
-These addins are registered through a Debian Control File, located at
-[inst/rstudio/addins.dcf](https://github.com/rstudio/addinexamples/blob/master/inst/rstudio/addins.dcf).
+Type the name of a data frame into the console or an R script,or inside a code chunk in an R Markdown document.  Select the name.  Then go to the Addins button and pick the Addin for the plot you wish to make.  The Addin will walk you through the process of constructing a graph based upon variables in your data frame.  At each step you see the graph to that point along with R-code to produce said graph.  When you are happy with your graph press the Done button.  The app will go dark.  Close the app tab and return to RStudio.  You will see that the code for your graph has been inserted in place of the name of the data frame.
 
-When RStudio is launched, it will automatically discover addins registered by
-installed R packages, and register them so that they can be invoked through
-keyboard shortcuts and other UI gestures. See
-[this support article](https://support.rstudio.com/hc/en-us/articles/215605467)
-for more details.
+These Addins are flexible enough to handle the everyday needs of beginning students in undergraduate statistics classes, but they only scratch the surface of `lattice`'s capability.  Eventually you should graduate to coding directly with `lattice`.
+
+*Note on Use*:  The Addins are intended for use in classroom settings, where the entire class is working on a not-so-powerful RStudio server.  Accordingly many of the input controls have been customized to inhibit their propensity to update.  When you are entering text or a number, you need to press Enter or shift focus away from the input area in order to cue the machine to update your information.  You will also note that sliders take a bit longer to "respond".  This behavior prevents the Server from being deluged by numerous requests for expensive graph-computations that most users don't intend.
+

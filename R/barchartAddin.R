@@ -23,18 +23,9 @@ barchartAddin <- function() {
   text <- context$selection[[1]]$text
   defaultData <- text
   
-  # make limited-reactivity text input:
-  lrTextInput <- function(inputId, label, value = "") {
-    tagList(tags$label(label, `for` = inputId), 
-            tags$input(id = inputId, 
-                       type = "text", value = value,
-                       class="lrTextInput form-control shiny-bound-input"))
-  }
-  
   # UI for gadget ---------------------------------
   ui <- miniPage(
-    #code,
-    includeScript(system.file("js/custom.js", package = "addinplots")),
+    useShinyCustom(),
     gadgetTitleBar("Histogram Code-Helper"),
     miniContentPanel(
       sidebarLayout(
@@ -487,7 +478,7 @@ barchartAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      lrTextInput(inputId = "keytitle", label = "Legend title:",
+      customTextInput(inputId = "keytitle", label = "Legend title:",
                 value = input$xVar)
     })
     
@@ -498,7 +489,7 @@ barchartAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      numericInput(inputId = "keytitlesize", label = "Title Size",
+      customNumericInput(inputId = "keytitlesize", label = "Title Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -509,7 +500,7 @@ barchartAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      numericInput(inputId = "keycolumns", label = "Key Columns",
+      customNumericInput(inputId = "keycolumns", label = "Key Columns",
                    min = 1, max = length(levels(input$group)), value = 1, step = 1)
     })
     
@@ -604,7 +595,7 @@ barchartAddin <- function() {
       }
       layout <- reactiveLayout()
       rows <- layout$rows
-      numericInput(inputId = "layrows", label = "Rows in Layout",
+      customNumericInput(inputId = "layrows", label = "Rows in Layout",
                    min = 1, value = rows)
     })
     
@@ -619,7 +610,7 @@ barchartAddin <- function() {
         return(NULL)
       }
       cols <- layout$cols
-      numericInput(inputId = "laycols", label = "Columns in Layout",
+      customNumericInput(inputId = "laycols", label = "Columns in Layout",
                    min = 1, value = cols)
     })
     
@@ -696,7 +687,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "rotatelabs", 
+      customNumericInput(inputId = "rotatelabs", 
                    label = paste0("Rotate ",ifelse(input$horizontal,"y","x"),
                                   "-axis values (degrees):"),
                    value = 0, step = 15)
@@ -706,7 +697,7 @@ barchartAddin <- function() {
       if (!reactiveVarCheck() || is.null(input$ownlabs) || !input$ownlabs) {
         return(NULL)
       }
-      lrTextInput(inputId = "customlabels", label = "Values (comma-separated)",
+      customTextInput(inputId = "customlabels", label = "Values (comma-separated)",
                 value = rv$customlabels)
     })
     
@@ -721,14 +712,14 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "main","Graph Title", value = "")
+      customTextInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "mainsize","Graph Title Size",
+      customNumericInput(inputId = "mainsize","Graph Title Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -736,14 +727,14 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "sub","Graph Sub-title", value = "")
+      customTextInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "subsize","Graph Sub-size",
+      customNumericInput(inputId = "subsize","Graph Sub-size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -751,14 +742,14 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "xlab","x-Label", value = "")
+      customTextInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "xlabsize","x-Label Size",
+      customNumericInput(inputId = "xlabsize","x-Label Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -766,14 +757,14 @@ barchartAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      lrTextInput(inputId = "ylab","y-Label", value = "")
+      customTextInput(inputId = "ylab","y-Label", value = "")
     })
     
     output$ylabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      numericInput(inputId = "ylabsize","y-Label Size",
+      customNumericInput(inputId = "ylabsize","y-Label Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
