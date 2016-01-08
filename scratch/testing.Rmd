@@ -15,7 +15,7 @@ library(tigerstats)
 ## Section Two
 
 ```{r}
-m111survey
+iris
 ```
 
 ### Subsection A

@@ -205,7 +205,10 @@ histogramAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"histogram( ~ ",xvar)
+      # since mosaic::histogram maskss that of lattice, we may need to
+      # explicitly ask for the lattice version in order to avoid unexpected
+      # behavior
+      code <- paste0(code,"lattice::histogram( ~ ",xvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }
@@ -267,11 +270,11 @@ histogramAddin <- function() {
         }
       }
       
-      # histogram type, adn densityplot option
+      # histogram type, and densityplot option
       if (entered(input$type)) {
-        if (input$type == "count" || input$type == "density") {
           code <- paste0(code, ",\n\ttype = \"",input$type, "\"")
-        }
+      } else {
+        code <- paste0(code, ",\n\ttype = \"percent\"")
       }
       typeDensity <- entered(input$type) && input$type == "density"
       wantsDensityPlot <- typeDensity && !is.null(input$adddensity) && input$adddensity
