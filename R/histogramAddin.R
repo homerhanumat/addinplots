@@ -190,14 +190,14 @@ histogramAddin <- function() {
       code <- ""
       
       # lead-up shingle-maker(s)
-      if (entered(input$f1name)) {
+      if (entered(input$f1name) && entered(input$facet1) && rv$shingle1) {
         code <- paste0(code,input$f1name," <- equal.count(",input$data,
                        "$",input$facet1,
                        ", number = ",input$f1number,", overlap = ",input$f1overlap,
                        ")\n")
       }
       
-      if (entered(input$f2name)) {
+      if (entered(input$f2name) && rv$shingle2) {
         code <- paste0(code,input$f2name,"<- equal.count(",input$data,
                        "$",input$facet2,
                        ", number = ",input$f2number,", overlap = ",input$f2overlap,

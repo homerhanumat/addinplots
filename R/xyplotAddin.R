@@ -194,7 +194,7 @@ xyplotAddin <- function() {
     })
     
     # our code-maker
-    observe({
+    observe(priority = 0, {
       xvar <- input$xVar
       yvar <- input$yVar
       if ( !reactiveVarCheck() ) {
@@ -204,14 +204,14 @@ xyplotAddin <- function() {
       code <- ""
       
       # lead-up shingle-maker(s)
-      if (entered(input$f1name)) {
+      if (entered(input$f1name) && entered(input$facet1) && rv$shingle1) {
         code <- paste0(code,input$f1name," <- equal.count(",input$data,
                        "$",input$facet1,
                        ", number = ",input$f1number,", overlap = ",input$f1overlap,
                        ")\n")
       }
       
-      if (entered(input$f2name)) {
+      if (entered(input$f2name) && rv$shingle2) {
         code <- paste0(code,input$f2name,"<- equal.count(",input$data,
                        "$",input$facet2,
                        ", number = ",input$f2number,", overlap = ",input$f2overlap,
@@ -415,8 +415,8 @@ xyplotAddin <- function() {
           return(NULL)
         }
         var1 <- ifelse(rv$shingle1, input$f1name, f1)
-        rows <- getNumberLevels(var1)
-        cols <- 1
+        cols <- getNumberLevels(var1)
+        rows <- 1
         res <- list(rows = rows, cols = cols)
         return(res)
       }
@@ -426,8 +426,8 @@ xyplotAddin <- function() {
         }
         var1 <- ifelse(rv$shingle1, input$f1name, f1)
         var2 <- ifelse(rv$shingle2, input$f2name, f2)
-        rows <- getNumberLevels(var1)
-        cols <- getNumberLevels(var2)
+        cols <- getNumberLevels(var1)
+        rows <- getNumberLevels(var2)
         res <- list(rows = rows, cols = cols)
         return(res)
       }
@@ -559,13 +559,13 @@ xyplotAddin <- function() {
       makeplot()
     })
     
-    outputOptions(output, "plot2", priority = -1)
+    outputOptions(output, "plot2", priority = -3)
     
     output$code2 <- renderText({
       rv$code
     })
     
-    outputOptions(output, "code2", priority = -1)
+    outputOptions(output, "code2", priority = -3)
     
     output$facet1 <- renderUI({
       if (!reactiveVarCheck()) {
@@ -586,8 +586,8 @@ xyplotAddin <- function() {
       if (entered(input$facet2)) {
         available <- setdiff(available, input$facet2)
       }
-      if (entered(input$facet1)) {
-        selected <- input$facet1
+      if (entered(isolate(input$facet1))) {
+        selected <- isolate(input$facet1)
       } else {
         selected <- ""
       }
@@ -596,6 +596,7 @@ xyplotAddin <- function() {
                   choices = c("", available),
                   selected = selected)
     })
+    
     
     output$facet2 <- renderUI({
       if (!reactiveVarCheck()) {
