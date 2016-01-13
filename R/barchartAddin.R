@@ -519,9 +519,13 @@ barchartAddin <- function() {
       makeplot()
     })
     
+    outputOptions(output, "plot2", priority = -1)
+    
     output$code2 <- renderText({
       rv$code
     })
+    
+    outputOptions(output, "code2", priority = -1)
     
     output$facetmessage <- renderText({
       if (!reactiveVarCheck()  || entered(input$group)) {

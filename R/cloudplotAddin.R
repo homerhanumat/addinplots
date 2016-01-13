@@ -551,9 +551,13 @@ cloudplotAddin <- function() {
       makeplot()
     })
     
+    outputOptions(output, "plot2", priority = -1)
+    
     output$code2 <- renderText({
       rv$code
     })
+    
+    outputOptions(output, "code2", priority = -1)
     
     output$facet1 <- renderUI({
       if (!reactiveVarCheck()) {
