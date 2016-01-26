@@ -540,9 +540,9 @@ densityplotAddin <- function() {
       }
       available <- facNumVars
       available <- setdiff(available, input$xVar)
-      if (entered(input$group)) {
-        available <- setdiff(available, input$group)
-      }
+      # if (entered(input$group)) {
+      #   available <- setdiff(available, input$group)
+      # }
       if (entered(input$facet2)) {
         available <- setdiff(available, input$facet2)
       }
@@ -568,9 +568,9 @@ densityplotAddin <- function() {
       }
       available <- facNumVars
       available <- setdiff(available, input$xVar)
-      if (entered(input$group)) {
-        available <- setdiff(available, input$group)
-      }
+      # if (entered(input$group)) {
+      #   available <- setdiff(available, input$group)
+      # }
       if (entered(input$facet1)) {
         available <- setdiff(available, input$facet1)
       }

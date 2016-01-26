@@ -580,9 +580,9 @@ xyplotAddin <- function() {
       
       available <- setdiff(available, c(input$xVar, input$yVar, input$zVar))
       
-      if (entered(input$group)) {
-        available <- setdiff(available, input$group)
-      }
+      # if (entered(input$group)) {
+      #   available <- setdiff(available, input$group)
+      # }
       if (entered(input$facet2)) {
         available <- setdiff(available, input$facet2)
       }
@@ -609,9 +609,9 @@ xyplotAddin <- function() {
       }
       available <- facNumVars
       available <- setdiff(available, c(input$xVar, input$yVar, input$zVar))
-      if (entered(input$group)) {
-        available <- setdiff(available, input$group)
-      }
+      # if (entered(input$group)) {
+      #   available <- setdiff(available, input$group)
+      # }
       if (entered(input$facet1)) {
         available <- setdiff(available, input$facet1)
       }
