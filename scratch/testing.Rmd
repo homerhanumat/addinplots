@@ -15,7 +15,8 @@ library(tigerstats)
 ## Section Two
 
 ```{r}
-verlander
+CPS2 <- subset(CPS85, wage < 44)
+CPS2
 ```
 
 ### Subsection A
