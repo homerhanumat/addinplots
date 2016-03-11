@@ -106,10 +106,16 @@ bwplotAddin <- function() {
                                 fluidRow(
                                   column(width = 3, uiOutput("additions")),
                                   column(width = 3, uiOutput("box.ratio")),
-                                  column(width = 3, uiOutput("alpha")),
-                                  column(width = 2, uiOutput("bw"))
+                                  column(width = 2, uiOutput("alpha")),
+                                  column(width = 1, uiOutput("flip")),
+                                  column(width = 1, uiOutput("bw"))
                                 )
                                 ,
+                                # fluidRow(
+                                #   column(width = 3, uiOutput("flip")),
+                                #   column(width = 3, uiOutput("bw"))
+                                # )
+                                # ,
                                 fluidRow(
                                   column(width = 5, uiOutput("main")),
                                   column(width = 2, uiOutput("mainsize"))
@@ -199,7 +205,11 @@ bwplotAddin <- function() {
       
       # function and formula:
       if ( entered(input$group) ) {
-        code <- paste0(code,"bwplot(",xvar," ~ ",input$group)
+        if ( is.null(input$flip) || !input$flip ) {
+          code <- paste0(code,"bwplot(",xvar," ~ ",input$group)
+        } else {
+          code <- paste0(code,"bwplot(",input$group," ~ ",xvar)
+        }
       } else {
         code <- paste0(code,"bwplot( ~ ",xvar)
       }
@@ -712,6 +722,23 @@ bwplotAddin <- function() {
       }
       customNumericInput(inputId = "alpha", label = "Violin Opacity",
                    min = 0.01, value = 0.5, max = 1, step = 0.01)
+    })
+    
+    output$flip <- renderUI({
+      if ( !reactiveVarCheck() ) {
+        return(NULL)
+      }
+      if ( !entered(input$group) ) {
+        return(NULL)
+      }
+      checkboxInput(inputId = "flip", label = "Flip Axes?")
+    })
+    
+    # make sure the above gets set back to FALSE when user removes grouping
+    observeEvent(input$group,{
+      if (! entered(input$group)) {
+        updateCheckboxInput(session, "flip", value = FALSE)
+      }
     })
     
     output$bw <- renderUI({
