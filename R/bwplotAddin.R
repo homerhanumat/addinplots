@@ -337,7 +337,7 @@ bwplotAddin <- function() {
         return(NULL)
       } else {
         command <- rv$code
-        eval(parse(text = command))
+        eval(parse(text = command), envir = globalenv())
       }
     })
     

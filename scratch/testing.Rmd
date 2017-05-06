@@ -15,9 +15,15 @@ library(tigerstats)
 ## Section Two
 
 ```{r}
-CPS2 <- subset(CPS85, wage < 44)
-CPS2
+scorps <- read.csv("/Users/homer/Downloads/Scorpion olfaction data Nov-2016.csv",
+                   header = T)
+a <- data.frame(scorps[scorps$group=='untreated' | scorps$group=='marble',])
 ```
+
+```{r}
+a
+```
+
 
 ### Subsection A
 
@@ -26,3 +32,4 @@ stuff
 ### Subsection B
 
 
+a
