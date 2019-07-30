@@ -26,7 +26,7 @@ barchartAddin <- function() {
   # UI for gadget ---------------------------------
   ui <- miniPage(
     useShinyCustom(),
-    gadgetTitleBar("Histogram Code-Helper"),
+    gadgetTitleBar("Bar Chart Code-Helper"),
     miniContentPanel(
       sidebarLayout(
         sidebarPanel(width = 2,
