@@ -213,7 +213,7 @@ barchartAddin <- function() {
                      input$data, ")\n")
       
       # function and formula:
-      code <- paste0(code,"barchart(contTable")
+      code <- paste0(code,"lattice::barchart(contTable")
       
       # layout information
       if (entered(input$facet1) && exists_as_numeric(input$layrows) && exists_as_numeric(input$laycols)) {

@@ -223,7 +223,7 @@ cloudplotAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"cloud(",zvar," ~ ",xvar," * ",yvar)
+      code <- paste0(code,"lattice::cloud(",zvar," ~ ",xvar," * ",yvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }

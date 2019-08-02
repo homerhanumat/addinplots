@@ -219,7 +219,7 @@ xyplotAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"xyplot(",yvar," ~ ",xvar)
+      code <- paste0(code,"lattice::xyplot(",yvar," ~ ",xvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }

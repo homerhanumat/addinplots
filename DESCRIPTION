@@ -1,6 +1,6 @@
 Package: addinplots
 Title: Addins for Plotting
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: person("Homer", "White", email = "homerhanumat@gmail.com", role = c("aut", "cre"))
 Description: For use by my elementary statistics students. Provides a GUI for
     lattice plotting functions.  Code output goes to the console or source document.

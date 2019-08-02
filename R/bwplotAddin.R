@@ -206,12 +206,12 @@ bwplotAddin <- function() {
       # function and formula:
       if ( entered(input$group) ) {
         if ( is.null(input$flip) || !input$flip ) {
-          code <- paste0(code,"bwplot(",xvar," ~ ",input$group)
+          code <- paste0(code,"lattice::bwplot(",xvar," ~ ",input$group)
         } else {
-          code <- paste0(code,"bwplot(",input$group," ~ ",xvar)
+          code <- paste0(code,"lattice::bwplot(",input$group," ~ ",xvar)
         }
       } else {
-        code <- paste0(code,"bwplot( ~ ",xvar)
+        code <- paste0(code,"lattice::bwplot( ~ ",xvar)
       }
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)

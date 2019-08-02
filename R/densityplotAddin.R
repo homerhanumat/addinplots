@@ -206,7 +206,7 @@ densityplotAddin <- function() {
       }
       
       # function and formula:
-      code <- paste0(code,"densityplot( ~ ",xvar)
+      code <- paste0(code,"lattice::densityplot( ~ ",xvar)
       if (entered(input$facet1) && !rv$shingle1) {
         code <- paste0(code, " | ", input$facet1)
       }

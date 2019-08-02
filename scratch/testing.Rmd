@@ -21,7 +21,6 @@ a <- data.frame(scorps[scorps$group=='untreated' | scorps$group=='marble',])
 ```
 
 ```{r}
-a
 ```
 
 
