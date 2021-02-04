@@ -21,6 +21,22 @@ a <- data.frame(scorps[scorps$group=='untreated' | scorps$group=='marble',])
 ```
 
 ```{r}
+lattice::cloud(Sepal.Length ~ Sepal.Width * Petal.Length,
+	data = iris,
+	screen = list(x = -90,
+			y = 63,
+			z = 0),
+	groups = Species,
+	auto.key = list(
+		space = "top",
+		title = "Species",
+		cex.title = 1,
+		columns = 3),
+	zoom = 0.7,
+	par.settings = latticeExtra::custom.theme(
+		symbol = viridis::viridis(3),
+		 bg = "gray90", fg = "gray20", pch = 19
+	))
 ```
 
 

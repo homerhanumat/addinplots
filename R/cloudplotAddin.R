@@ -25,7 +25,6 @@ cloudplotAddin <- function() {
 
   # Generate UI for the gadget -------------------
   ui <- miniPage(
-    useShinyCustom(slider_delay = 1250),
     gadgetTitleBar("Cloudplot Code-Helper"),
     miniContentPanel(
     sidebarLayout(
@@ -36,9 +35,9 @@ cloudplotAddin <- function() {
         uiOutput("xVar"),
         uiOutput("yVar"),
         helpText("Use these sliders to rotate the plot."),
-        customSliderInput("yScreen","Around z-axis",0,360,value=0,step=1),
-        customSliderInput("xScreen","Around x-axis",0,360,value=90,step=1),
-        customSliderInput("zScreen","Around y-axis",0,360,value=0,step=1)
+        sliderInput("yScreen","Around z-axis",0,360,value=0,step=1),
+        sliderInput("xScreen","Around x-axis",0,360,value=90,step=1),
+        sliderInput("zScreen","Around y-axis",0,360,value=0,step=1)
       ),
       mainPanel(width = 9,
         tabsetPanel(
@@ -116,8 +115,6 @@ cloudplotAddin <- function() {
           )
           ,
           fluidRow(
-            column(width = 3, uiOutput("pch")),
-            column(width = 3, uiOutput("bw")),
             column(width=3, uiOutput("zoom"))
           )
           ,
@@ -197,13 +194,10 @@ cloudplotAddin <- function() {
     })
     
     # our code-maker
-    observe({
+    lattice_code <- reactive({
       xvar <- input$xVar
       yvar <- input$yVar
       zvar <- input$zVar
-      if ( !reactiveVarCheck() ) {
-        return("No code to show yet!")
-      }
       
       code <- ""
       
@@ -272,18 +266,6 @@ cloudplotAddin <- function() {
                        ",\n\t\tcex.title = ", input$keytitlesize,
                        ",\n\t\tcolumns = ", input$keycolumns,
                        ")")
-      }
-      
-      # pch argument
-      if (exists_as_numeric(input$pch) && input$pch !=1 && !input$bw) {
-        code <- paste0(code,",\n\tpch = ",input$pch)
-      }
-      
-      # theme argument
-      wantBW <- !is.null(input$bw) && input$bw
-      if ( wantBW ) {
-        code <- paste0(code, 
-                       ",\n\tpar.settings = canonical.theme(color=FALSE)")
       }
       
       # zoom argument
@@ -355,24 +337,42 @@ cloudplotAddin <- function() {
                        ")")
       }
       
+      if (entered(input$group)) {
+        code <- paste0(
+          code,
+          ",\n\tpar.settings = latticeExtra::custom.theme(",
+          "\n\t\tsymbol = viridis::viridis(",
+          length(levels(get(input$group, 
+                            envir = as.environment(reactiveData())))),
+          "),\n\t\t bg = \"gray90\", fg = \"gray20\", pch = 19\n\t)"
+        )
+      } else {
+          code <- paste0(
+            code,
+            ",\n\tpch = 19"
+          )
+        }
+      
       # add closing paren:
       code <- paste0(code,")")
-      rv$code <- code
+      if (reactiveVarCheck()) {
+        return(code)
+      } else {
+        return(NULL)
+      }
     })
+    
+    lattice_code <- debounce(lattice_code, 1000)
     
     # our plot-maker
     makeplot <- reactive({
+      req(lattice_code())
       data <- reactiveData()
-      if (isErrorMessage(data))
-        return(NULL)
-      
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      } else {
-        command <- rv$code
-        eval(parse(text = command), envir = globalenv())
-      }
+      if (isErrorMessage(data)) return(NULL)
+      command <- lattice_code()
+      eval(parse(text = command), envir = globalenv())
     })
+    
     
     # compute a reasonable layout
     reactiveLayout <- reactive({
@@ -421,6 +421,7 @@ cloudplotAddin <- function() {
       return(res)
       
     })
+
     
 
 ## Primary Variables -----------------
@@ -462,7 +463,7 @@ cloudplotAddin <- function() {
     })
     
     output$code1 <- renderText({
-      rv$code
+      lattice_code()
     })
     
     output$group <- renderUI({
@@ -510,18 +511,13 @@ cloudplotAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      customTextInput(inputId = "keytitle", label = "Legend title:",
+      textInput(inputId = "keytitle", label = "Legend title:",
                 value = input$group)
     })
     
     output$keytitlesize <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      if ( !entered(input$group) ) {
-        return(NULL)
-      }
-      customNumericInput(inputId = "keytitlesize", label = "Title Size",
+      req(input$group)
+      numericInput(inputId = "keytitlesize", label = "Title Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -532,7 +528,7 @@ cloudplotAddin <- function() {
       if ( !entered(input$group) ) {
         return(NULL)
       }
-      customNumericInput(inputId = "keycolumns", label = "Key Columns",
+      numericInput(inputId = "keycolumns", label = "Key Columns",
                    min = 1, max = length(levels(input$group)), value = 1, step = 1)
     })
     
@@ -554,7 +550,7 @@ cloudplotAddin <- function() {
     outputOptions(output, "plot2", priority = -1)
     
     output$code2 <- renderText({
-      rv$code
+      lattice_code()
     })
     
     outputOptions(output, "code2", priority = -1)
@@ -631,7 +627,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      customTextInput(inputId = "f1name", label = "Shingle Name",
+      textInput(inputId = "f1name", label = "Shingle Name",
                 value = suggestedName(input$facet1))
     })
     
@@ -647,7 +643,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      customNumericInput(inputId = "f1number", label = "How Many?",
+      numericInput(inputId = "f1number", label = "How Many?",
                    min = 2, value = 2)
     })
     
@@ -663,7 +659,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle1 <- TRUE
-      customNumericInput(inputId = "f1overlap", label = "Overlap",
+      numericInput(inputId = "f1overlap", label = "Overlap",
                    min = 0, value = 0.1)
     })
     
@@ -679,7 +675,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      customTextInput(inputId = "f2name", label = "Shingle 2 Name",
+      textInput(inputId = "f2name", label = "Shingle 2 Name",
                 value = suggestedName(input$facet2))
     })
     
@@ -695,7 +691,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      customNumericInput(inputId = "f2number", label = "How Many?",
+      numericInput(inputId = "f2number", label = "How Many?",
                    min = 2, value = 2)
     })
     
@@ -711,7 +707,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       rv$shingle2 <- TRUE
-      customNumericInput(inputId = "f2overlap", label = "Overlap",
+      numericInput(inputId = "f2overlap", label = "Overlap",
                    min = 0, value = 0.1)
     })
     
@@ -721,7 +717,7 @@ cloudplotAddin <- function() {
       }
       layout <- reactiveLayout()
       rows <- layout$rows
-      customNumericInput(inputId = "layrows", label = "Rows in Layout",
+      numericInput(inputId = "layrows", label = "Rows in Layout",
                    min = 1, value = rows)
     })
     
@@ -738,7 +734,7 @@ cloudplotAddin <- function() {
         return(NULL)
       }
       cols <- layout$cols
-      customNumericInput(inputId = "laycols", label = "Columns in Layout",
+      numericInput(inputId = "laycols", label = "Columns in Layout",
                    min = 1, value = cols)
     })
     
@@ -765,21 +761,21 @@ cloudplotAddin <- function() {
     })
     
     output$code3 <- renderText({
-      rv$code
+      lattice_code()
     })
     
     output$main <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customTextInput(inputId = "main","Graph Title", value = "")
+      textInput(inputId = "main","Graph Title", value = "")
     })
     
     output$mainsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customNumericInput(inputId = "mainsize","Graph Title Size",
+      numericInput(inputId = "mainsize","Graph Title Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -787,14 +783,14 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customTextInput(inputId = "sub","Graph Sub-title", value = "")
+      textInput(inputId = "sub","Graph Sub-title", value = "")
     })
     
     output$subsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customNumericInput(inputId = "subsize","Graph Sub-size",
+      numericInput(inputId = "subsize","Graph Sub-size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -802,14 +798,14 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customTextInput(inputId = "xlab","x-Label", value = "")
+      textInput(inputId = "xlab","x-Label", value = "")
     })
     
     output$xlabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customNumericInput(inputId = "xlabsize","x-Label Size",
+      numericInput(inputId = "xlabsize","x-Label Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -817,14 +813,14 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customTextInput(inputId = "ylab","y-Label", value = "")
+      textInput(inputId = "ylab","y-Label", value = "")
     })
     
     output$ylabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customNumericInput(inputId = "ylabsize","y-Label Size",
+      numericInput(inputId = "ylabsize","y-Label Size",
                    min = 0, max = 4, value = 1, step = 0.1)
     })
     
@@ -832,40 +828,22 @@ cloudplotAddin <- function() {
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customTextInput(inputId = "zlab","z-Label", value = "")
+      textInput(inputId = "zlab","z-Label", value = "")
     })
     
     output$zlabsize <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customNumericInput(inputId = "zlabsize","z-Label Size",
+      numericInput(inputId = "zlabsize","z-Label Size",
                    min = 0, max = 4, value = 1, step = 0.1)
-    })
-    
-    output$pch <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      if (input$bw) {
-        return(NULL)
-      }
-      customNumericInput(inputId = "pch","Point Type", 
-                   min = 1, max = 25, step =1, value = 1, width = "100px")
-    })
-    
-    output$bw <- renderUI({
-      if (!reactiveVarCheck()) {
-        return(NULL)
-      }
-      checkboxInput(inputId = "bw", label = "Bl & Wh", width = "100px")
     })
     
     output$zoom <- renderUI({
       if (!reactiveVarCheck()) {
         return(NULL)
       }
-      customNumericInput(inputId = "zoom","Zoom In/Out", 
+      numericInput(inputId = "zoom","Zoom In/Out", 
                    min = 0, step = 0.1, value = 1, width = "100px")
     })
 
@@ -874,15 +852,7 @@ cloudplotAddin <- function() {
 
     # Listen for Done.
     observeEvent(input$done, {
-      
-      # Get code to user:
-      if (reactiveVarCheck()) {
-          code <- rv$code
-          rstudioapi::insertText(text = code)
-      } else {
-         return(NULL)
-       }
-
+      rstudioapi::insertText(text = lattice_code())
       invisible(stopApp())
     })
   }
