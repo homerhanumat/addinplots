@@ -4,7 +4,7 @@ Version: 0.1.5
 Authors@R: person("Homer", "White", email = "homerhanumat@gmail.com", role = c("aut", "cre"))
 Description: For use by my elementary statistics students. Provides a GUI for
     lattice plotting functions.  Code output goes to the console or source document. 
-    All plots other thna cloudplot are deprecated and will be removed in a future
+    All plots other than cloudplot are deprecated and will be removed in a future
     version.
 URL: URL: https://github.com/homerhanumat/addinplots
 Depends:
