@@ -1,5 +1,9 @@
 # addinplots
 
+## NOTE
+
+As of Version 0.1.5 all plotting function sother than `cloudplotAddin()` are deprecated and will be removed in the next version.
+
 ## Introduction
 
 This is a package of Addins.  For more about Addins and how to use them, please see
@@ -9,8 +13,6 @@ Each Addin in this package is a code-helper for a particular type of plot in the
 
 
 ## Installation
-
-Follow the installation directions in the article cited above.  In addition, install this package and one of its dependencies:
 
 ```
 devtools::install_github("homerhanumat/addinplots")

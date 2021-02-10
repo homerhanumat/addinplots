@@ -115,7 +115,8 @@ cloudplotAddin <- function() {
           )
           ,
           fluidRow(
-            column(width=3, uiOutput("zoom"))
+            column(width=3, uiOutput("zoom")),
+            column(width = 3, uiOutput("pallete"))
           )
           ,
           fluidRow(
@@ -338,10 +339,17 @@ cloudplotAddin <- function() {
       }
       
       if (entered(input$group)) {
+        if (entered(input$pallete)) {
+          pal <- input$pallete
+        } else {
+          pal <- "viridis"
+        }
         code <- paste0(
           code,
           ",\n\tpar.settings = latticeExtra::custom.theme(",
-          "\n\t\tsymbol = viridis::viridis(",
+          "\n\t\tsymbol = viridis::",
+          pal,
+          "(",
           length(levels(get(input$group, 
                             envir = as.environment(reactiveData())))),
           "),\n\t\t bg = \"gray90\", fg = \"gray20\", pch = 19\n\t)"
@@ -845,6 +853,18 @@ cloudplotAddin <- function() {
       }
       numericInput(inputId = "zoom","Zoom In/Out", 
                    min = 0, step = 0.1, value = 1, width = "100px")
+    })
+    
+    output$pallete <- renderUI({
+      if (!reactiveVarCheck()) {
+        return(NULL)
+      }
+      selectInput(inputId = "pallete","Color Palette", 
+                   choices = c(
+                     "viridis", "magma", "plasma",
+                     "inferno", "cividis"
+                   ),
+                  selected = "viridis")
     })
 
 ## Finish Up ----------------
